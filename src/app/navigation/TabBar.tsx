@@ -15,7 +15,7 @@ const TABS: Record<keyof TabParamList, { label: string; icon: IconName; activeIc
 
 const ThemedIcon = withUnistyles(Ionicons);
 
-/** Docked tab bar; the active tab lights up as a glowing pill to match the neon theme. */
+/** Docked tab bar; the active tab lights up as a glowing tile to match the neon theme. */
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View style={styles.bar}>
@@ -42,7 +42,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               size={22}
               uniProps={(theme) => ({ color: focused ? theme.colors.onPrimary : theme.colors.textMuted })}
             />
-            {focused && <Text style={styles.label}>{tab.label}</Text>}
+            <Text style={[styles.label, focused && styles.labelActive]}>{tab.label}</Text>
           </Pressable>
         );
       })}
@@ -63,12 +63,11 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
   tab: {
     flex: 1,
-    height: 48,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.gap(2),
-    borderRadius: theme.radius.pill,
+    gap: theme.gap(1),
+    paddingVertical: theme.gap(2),
+    borderRadius: theme.radius.md,
   },
   tabActive: {
     backgroundColor: theme.colors.primary,
@@ -81,7 +80,10 @@ const styles = StyleSheet.create((theme, rt) => ({
   label: {
     fontFamily: theme.fonts.display,
     fontWeight: theme.fontWeight.bold,
-    fontSize: 14,
+    fontSize: 13,
+    color: theme.colors.textMuted,
+  },
+  labelActive: {
     color: theme.colors.onPrimary,
   },
 }));
