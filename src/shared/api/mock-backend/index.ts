@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/shared/config';
+import { env } from '@/shared/config';
 
 import { mockBackendConfig } from './config';
 import { error, handle } from './handlers';
@@ -17,7 +17,7 @@ export async function mockFetch(input: RequestInfo, init?: RequestInit): Promise
   await wait(minLatencyMs + random() * (maxLatencyMs - minLatencyMs));
   if (random() < failureRate) return error(503, 'Connection hiccup. Please try again.');
 
-  const url = request.url.startsWith(API_BASE_URL) ? request.url.slice(API_BASE_URL.length) : request.url;
+  const url = request.url.startsWith(env.apiBaseUrl) ? request.url.slice(env.apiBaseUrl.length) : request.url;
   return handle(request.method, url.split('?')[0]);
 }
 

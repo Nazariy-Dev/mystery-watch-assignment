@@ -1,11 +1,11 @@
-import { API_BASE_URL } from '@/shared/config';
+import { env } from '@/shared/config';
 
 import type { Box, Me, OpenBoxResult, SellItemResult } from '../contract';
 
 import { mockBackendConfig, mockFetch } from './index';
 
 const call = async <T>(method: 'GET' | 'POST', path: string) => {
-  const res = await mockFetch(`${API_BASE_URL}${path}`, { method });
+  const res = await mockFetch(`${env.apiBaseUrl}${path}`, { method });
   return { status: res.status, body: (await res.json()) as T };
 };
 

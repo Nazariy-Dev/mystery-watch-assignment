@@ -1,11 +1,13 @@
-export type { ApiErrorBody, Box, BoxContent, Me, OpenBoxResult, OwnedItem, Rarity, Watch } from './contract';
-export {
-  mysteryApi,
-  PERSIST_ROOT_KEY,
-  useGetBoxesQuery,
-  useGetBoxQuery,
-  useGetMeQuery,
-  useOpenBoxMutation,
-  useResetDemoMutation,
-  useSellItemMutation,
-} from './mysteryApi';
+export { baseApi, PERSIST_ROOT_KEY } from './baseApi';
+export type {
+  ApiErrorBody,
+  Box,
+  BoxContent,
+  Me,
+  OpenBoxResult,
+  OwnedItem,
+  Rarity,
+  SellItemResult,
+  Watch,
+} from './contract';
+export { mockBackendConfig } from './mock-backend';

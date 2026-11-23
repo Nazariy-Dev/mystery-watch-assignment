@@ -2,7 +2,8 @@ import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useGetBoxesQuery, useGetMeQuery } from '@/shared/api';
+import { useGetBoxesQuery } from '@/entities/box';
+import { useGetMeQuery } from '@/entities/player';
 import { Button, Screen, Text } from '@/shared/ui';
 
 export function CataloguePage() {
