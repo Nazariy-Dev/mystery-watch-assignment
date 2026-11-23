@@ -1,41 +1,62 @@
-import { useNavigation } from '@react-navigation/native';
-import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { ActivityIndicator, View } from 'react-native';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { useGetBoxesQuery } from '@/entities/box';
-import { useGetMeQuery } from '@/entities/player';
+import { CoinBalance } from '@/entities/player';
 import { Button, Screen, Text } from '@/shared/ui';
 
+import { BoxCarousel } from './BoxCarousel';
+
+const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
+
 export function CataloguePage() {
-  const navigation = useNavigation();
-  const me = useGetMeQuery();
-  const boxes = useGetBoxesQuery();
+  const { data: boxes, isError, refetch } = useGetBoxesQuery();
 
   return (
     <Screen withBottomInset={false}>
-      <View style={styles.content}>
-        <Text variant="label" tone="primary">Shop</Text>
-        <Text variant="display">Mystery boxes</Text>
-        <Text variant="title" tone="coin">
-          {me.data ? `${me.data.balance} coins · ${me.data.inventory.length} watches` : 'Loading wallet…'}
-        </Text>
-        {boxes.isError && <Button label="Retry" variant="secondary" onPress={boxes.refetch} />}
-        {boxes.data?.map((box) => (
-          <Button
-            key={box.id}
-            label={`${box.name} · ${box.price}`}
-            variant="secondary"
-            onPress={() => navigation.navigate('BoxDetails', { boxId: box.id })}
-          />
-        ))}
+      <View style={styles.header}>
+        <View>
+          <Text variant="label" tone="primary">Mystery Watch</Text>
+          <Text variant="title">Pick your box</Text>
+        </View>
+        <CoinBalance />
       </View>
+      {boxes ? (
+        <View style={styles.carousel}>
+          <BoxCarousel boxes={boxes} />
+        </View>
+      ) : (
+        <View style={styles.status}>
+          {isError ? (
+            <>
+              <Text tone="muted">Couldn&apos;t load the boxes.</Text>
+              <Button label="Retry" variant="secondary" onPress={refetch} />
+            </>
+          ) : (
+            <Spinner size="large" accessibilityLabel="Loading boxes" />
+          )}
+        </View>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  content: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.gap(3),
+  },
+  carousel: {
     flex: 1,
+    // Bleed the carousel to the screen edges so neighbouring cards peek in from both sides.
+    marginHorizontal: -theme.gap(4),
+    paddingBottom: theme.gap(2),
+  },
+  status: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
     gap: theme.gap(4),
   },
