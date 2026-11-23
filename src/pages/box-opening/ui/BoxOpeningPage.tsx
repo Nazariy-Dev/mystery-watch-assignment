@@ -16,6 +16,7 @@ import { Confetti } from './Confetti';
 import { HoldToOpen } from './HoldToOpen';
 import { RevealOverlay } from './RevealOverlay';
 import { TeaseCallout, type TeaseStep } from './TeaseCallout';
+import { Vignette } from './Vignette';
 
 type BoxOpeningPageProps = NativeStackScreenProps<RootStackParamList, 'BoxOpening'>;
 
@@ -136,6 +137,9 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         <BoxStage
           ref={stage}
           tier={box.tier}
+          entrance
+          ambient
+          onLand={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
           charging={phase === 'charging' || phase === 'opening'}
           result={item?.watch.rarity}
           onBeat={onBeat}
@@ -152,6 +156,11 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           />
         )}
       </View>
+      {/* Creeps in over the hold, peaks through the tease, then lifts for the reveal. Drawn under the footer. */}
+      <Vignette
+        strength={phase === 'charging' ? 0.85 : busy ? 1 : 0}
+        durationMs={phase === 'charging' ? 1200 : 400}
+      />
       <View style={styles.footer}>
         {error ? (
           <Text variant="caption" style={styles.error}>{error}</Text>

@@ -8,6 +8,8 @@ import { AdditiveBlending, MathUtils, type Group, type PerspectiveCamera, type P
 import type { Rarity } from '@/shared/api';
 import { BurstVisuals } from '../lib/burst-visuals';
 import { createGlowTexture } from '../lib/glow-texture';
+import { MoteVisuals } from '../lib/mote-visuals';
+import { Entrance } from '../model/entrance';
 import { BoxMotion } from '../model/motion';
 import { RevealTimeline, type RevealBeat } from '../model/reveal';
 import { SeamGlow } from '../model/seam';
@@ -29,6 +31,12 @@ type BoxStageProps = {
   result?: Rarity;
   /** Fires on each reveal beat, from the render loop, for haptics and for handing over to the result card. */
   onBeat?: (beat: RevealBeat) => void;
+  /** Drops the box onto the stage with a bounce and eases the camera in, once, when it first appears. */
+  entrance?: boolean;
+  /** Fires when the dropping box first hits the ground. */
+  onLand?: () => void;
+  /** Dust motes drift around the box and gather into it while charging. */
+  ambient?: boolean;
   /** When false the canvas renders on demand only, so off-focus boxes cost no frames. */
   spinning?: boolean;
   /** Horizontal drags turn the box; vertical drags still reach the parent scroll view. */
@@ -51,6 +59,9 @@ const AURA_MAX_SCALE = 1.9;
 type RigProps = {
   spin: SpinController;
   motion: BoxMotion;
+  entrance: Entrance;
+  ambient: boolean;
+  onLand?: () => void;
   timeline: RevealTimeline;
   seam: SeamGlow;
   spinning: boolean;
@@ -61,7 +72,7 @@ type RigProps = {
 };
 
 // Everything per-frame lives in useFrame on plain objects, so animation never re-renders React.
-function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, onBeat, children }: RigProps) {
+function Rig({ spin, motion, entrance, ambient, onLand, timeline, seam, spinning, charging, reduceMotion, onBeat, children }: RigProps) {
   const turntable = useRef<Group>(null);
   const shaker = useRef<Group>(null);
   const light = useRef<PointLight>(null);
@@ -69,11 +80,15 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
   const aura = useRef<Sprite>(null);
   const glowTexture = useMemo(() => createGlowTexture(), []);
   const [burst] = useState(() => new BurstVisuals());
+  const [motes] = useState(() => (ambient ? new MoteVisuals() : null));
 
   useEffect(() => () => glowTexture.dispose(), [glowTexture]);
   useEffect(() => () => burst.dispose(), [burst]);
+  useEffect(() => () => motes?.dispose(), [motes]);
 
   useFrame((_, delta) => {
+    // The entrance clock starts here, once the model has loaded, so the drop is never missed behind a blank canvas.
+    if (entrance.tick(delta)) onLand?.();
     timeline.tick(delta).forEach((beat) => onBeat?.(beat));
     motion.tick(delta, { open: timeline.opened, charging: charging || (timeline.teasing && !reduceMotion) });
     seam.update({ charge: motion.shake, shown: timeline.shown, pulse: timeline.pulse });
@@ -81,12 +96,18 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
 
     // Once the result is in, the box swings round to face the camera for the burst.
     const yaw = spin.tick(delta, spinning, timeline.running ? OPEN_YAW : undefined);
-    if (turntable.current) turntable.current.rotation.y = yaw;
+    if (turntable.current) {
+      turntable.current.rotation.y = yaw;
+      turntable.current.position.y = entrance.drop;
+    }
     if (shaker.current) {
       shaker.current.rotation.z = motion.wobble * 0.05;
       shaker.current.position.x = motion.wobble * 0.02;
-      shaker.current.scale.setScalar(reduceMotion ? 1 : 1 + timeline.pulse * 0.12);
+      const punch = reduceMotion ? 1 : 1 + timeline.pulse * 0.12;
+      // Squashes on landing: shorter and wider for a moment, so the drop has weight.
+      shaker.current.scale.set(punch * (1 + entrance.impact * 0.06), punch * (1 - entrance.impact * 0.1), punch * (1 + entrance.impact * 0.06));
     }
+    motes?.update(delta, { charge: motion.shake, color: seam.color });
     if (light.current) {
       light.current.color.copy(seam.color);
       light.current.intensity = openness * GLOW_INTENSITY;
@@ -104,7 +125,7 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
     if (aura.current) {
       const material = aura.current.material as SpriteMaterial;
       material.color.copy(seam.color);
-      material.opacity = Math.min(1, motion.shake * 0.35 + timeline.pulse + openness * 0.7);
+      material.opacity = Math.min(1, motion.shake * 0.35 + timeline.pulse + openness * 0.7 + entrance.impact * 0.6);
       aura.current.visible = material.opacity > 0.01;
       aura.current.scale.setScalar(Math.min(AURA_MAX_SCALE, 1.4 + motion.shake * 0.2 + timeline.pulse * 0.5));
       aura.current.position.y = 0.6 + openness * 0.4;
@@ -117,6 +138,7 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
         <spriteMaterial map={glowTexture} blending={AdditiveBlending} depthWrite={false} transparent opacity={0} />
       </sprite>
       <pointLight ref={flash} position={[0, 0.8, 1.6]} intensity={0} distance={4} />
+      {motes && !reduceMotion && <primitive object={motes.root} />}
       <group ref={turntable}>
         <group ref={shaker}>
           {children}
@@ -141,7 +163,9 @@ const KICK_SHUDDER = 0.06;
  * Places the camera so the box fits the canvas in both directions, whatever its aspect ratio.
  * A fixed camera only fits one shape: tall cards cropped the sides and the open lid left the frame.
  */
-function FitCamera({ motion, timeline, reduceMotion }: { motion: BoxMotion; timeline: RevealTimeline; reduceMotion: boolean }) {
+type FitCameraProps = { motion: BoxMotion; entrance: Entrance; timeline: RevealTimeline; reduceMotion: boolean };
+
+function FitCamera({ motion, entrance, timeline, reduceMotion }: FitCameraProps) {
   const camera = useThree((state) => state.camera) as PerspectiveCamera;
   const { width, height } = useThree((state) => state.size);
 
@@ -155,7 +179,7 @@ function FitCamera({ motion, timeline, reduceMotion }: { motion: BoxMotion; time
     const age = reduceMotion ? null : timeline.burstAge;
     // The burst kicks the camera: a quick punch in plus a shudder that dies within half a second.
     const kick = age === null ? 0 : Math.exp(-age * 8);
-    const distance = Math.max(halfHeight / tanV, halfWidth / tanH) * (1 - KICK_PUNCH * kick);
+    const distance = Math.max(halfHeight / tanV, halfWidth / tanH) * (1 - KICK_PUNCH * kick) * entrance.dolly;
     const shudderX = Math.sin((age ?? 0) * 57) * KICK_SHUDDER * kick;
     const shudderY = Math.cos((age ?? 0) * 43) * KICK_SHUDDER * kick;
 
@@ -171,6 +195,9 @@ export function BoxStage({
   charging = false,
   result,
   onBeat,
+  entrance = false,
+  onLand,
+  ambient = false,
   ref,
   spinning = true,
   inspectable = false,
@@ -182,6 +209,7 @@ export function BoxStage({
   const [spin] = useState(() => new SpinController());
   const [motion] = useState(() => new BoxMotion());
   const [timeline] = useState(() => new RevealTimeline());
+  const [arrival] = useState(() => new Entrance(!entrance || reduceMotion));
   const seam = useMemo(() => new SeamGlow(tier), [tier]);
 
   useImperativeHandle(ref, () => ({ skip: () => timeline.skip() }), [timeline]);
@@ -214,12 +242,15 @@ export function BoxStage({
         {/* R3F's canvas claims touches; letting them through keeps parent scrolls, presses and the drag working. */}
         <View style={fill} pointerEvents="none">
           <Canvas frameloop={spinning ? 'always' : 'demand'} camera={{ fov: FOV }}>
-            <FitCamera motion={motion} timeline={timeline} reduceMotion={reduceMotion} />
+            <FitCamera motion={motion} entrance={arrival} timeline={timeline} reduceMotion={reduceMotion} />
             <BoxLighting tier={tier} />
             <Suspense fallback={null}>
               <Rig
                 spin={spin}
                 motion={motion}
+                entrance={arrival}
+                ambient={ambient}
+                onLand={onLand}
                 timeline={timeline}
                 seam={seam}
                 spinning={spinning && !reduceMotion}
