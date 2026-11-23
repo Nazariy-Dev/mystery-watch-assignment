@@ -11,6 +11,7 @@ import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
 import { IconButton, Screen, Text } from '@/shared/ui';
 
+import { BurstFlash } from './BurstFlash';
 import { HoldToOpen } from './HoldToOpen';
 import { RevealOverlay } from './RevealOverlay';
 import { TeaseCallout, type TeaseStep } from './TeaseCallout';
@@ -36,6 +37,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
   const [item, setItem] = useState<OwnedItem | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teaseStep, setTeaseStep] = useState<TeaseStep | null>(null);
+  const [burst, setBurst] = useState(false);
   // Remounts the hold button so its fill starts empty for each attempt.
   const [attempt, setAttempt] = useState(0);
 
@@ -76,6 +78,8 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
       setTeaseStep((previous) => ({ rarity: beat.rarity, final: beat.final, count: (previous?.count ?? 0) + 1 }));
     } else if (beat.kind === 'burst') {
       setTeaseStep(null);
+      setBurst(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       setPhase('revealed');
@@ -85,6 +89,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
   const reset = () => {
     setItem(null);
     setTeaseStep(null);
+    setBurst(false);
     setError(null);
     setPhase('ready');
     setAttempt((n) => n + 1);
@@ -147,6 +152,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         />
       </View>
       {teaseStep && <TeaseCallout step={teaseStep} />}
+      {burst && phase !== 'revealed' && <BurstFlash />}
       {phase === 'revealed' && item && (
         <RevealOverlay
           item={item}

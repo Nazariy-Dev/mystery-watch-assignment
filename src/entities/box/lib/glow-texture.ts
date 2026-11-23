@@ -24,3 +24,24 @@ export function createGlowTexture(size = 64) {
   texture.needsUpdate = true;
   return texture;
 }
+
+/** A light shaft: brightest at the base and along its center line, fading out toward the tip and the edges. */
+export function createBeamTexture(width = 32, height = 64) {
+  const data = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    const along = (1 - y / (height - 1)) ** 1.5;
+    for (let x = 0; x < width; x += 1) {
+      const across = (1 - Math.abs((2 * x) / (width - 1) - 1)) ** 2;
+      const i = (y * width + x) * 4;
+      data[i] = 255;
+      data[i + 1] = 255;
+      data[i + 2] = 255;
+      data[i + 3] = Math.round(along * across * 255);
+    }
+  }
+  const texture = new DataTexture(data, width, height, RGBAFormat);
+  texture.magFilter = LinearFilter;
+  texture.minFilter = LinearFilter;
+  texture.needsUpdate = true;
+  return texture;
+}

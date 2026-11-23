@@ -77,6 +77,8 @@ export function HoldToOpen({ label, disabled, onChargingChange, onComplete }: Ho
       style={[styles.track, disabled && styles.disabled]}
     >
       <Animated.View style={[styles.fill, fillStyle]} />
+      {/* Drawn over the fill: a border on the track itself insets the fill and leaves a hairline gap on iOS. */}
+      <View style={styles.border} pointerEvents="none" />
       <View style={styles.labelBox}>
         <Text style={styles.label}>{label}</Text>
       </View>
@@ -90,6 +92,14 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.radius.pill,
     overflow: 'hidden',
     backgroundColor: theme.colors.surfaceRaised,
+  },
+  border: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: theme.radius.pill,
     borderWidth: 1.5,
     borderColor: theme.colors.primary,
   },

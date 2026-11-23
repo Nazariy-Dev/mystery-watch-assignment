@@ -28,11 +28,13 @@ export class RevealTimeline {
   private schedule: { at: number; beat: RevealBeat }[] = [];
   private next = 0;
   private elapsed = 0;
+  private burstAt = 0;
 
   start(result: Rarity) {
     const steps = LADDER.slice(0, LADDER.indexOf(result) + 1);
     const burstAt = (steps.length - 1) * STEP_SECONDS + FINAL_HOLD_SECONDS;
     this.reset();
+    this.burstAt = burstAt;
     this.schedule = [
       ...steps.map((rarity, index) => ({
         at: index * STEP_SECONDS,
@@ -62,10 +64,15 @@ export class RevealTimeline {
     return this.schedule.length > 0;
   }
 
+  /** Seconds since the lid burst, or null before it; drives the rays, sparks and camera kick. */
+  get burstAge() {
+    return this.opened ? this.elapsed - this.burstAt : null;
+  }
+
   /** Advances by `delta` seconds and returns the beats crossed, in order; each beat fires exactly once. */
   tick(delta: number): RevealBeat[] {
     this.pulse *= Math.exp(-PULSE_DECAY * delta);
-    if (this.next >= this.schedule.length) return [];
+    if (!this.running) return [];
 
     this.elapsed += delta;
     const fired: RevealBeat[] = [];

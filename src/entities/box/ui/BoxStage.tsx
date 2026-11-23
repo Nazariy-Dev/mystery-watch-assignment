@@ -6,6 +6,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 import { AdditiveBlending, MathUtils, type Group, type PerspectiveCamera, type PointLight, type Sprite, type SpriteMaterial } from 'three';
 
 import type { Rarity } from '@/shared/api';
+import { BurstVisuals } from '../lib/burst-visuals';
 import { createGlowTexture } from '../lib/glow-texture';
 import { BoxMotion } from '../model/motion';
 import { RevealTimeline, type RevealBeat } from '../model/reveal';
@@ -61,11 +62,16 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
   const flash = useRef<PointLight>(null);
   const aura = useRef<Sprite>(null);
   const glowTexture = useMemo(() => createGlowTexture(), []);
+  const [burst] = useState(() => new BurstVisuals());
 
   useEffect(() => () => glowTexture.dispose(), [glowTexture]);
+  useEffect(() => () => burst.dispose(), [burst]);
 
   useFrame((_, delta) => {
-    timeline.tick(delta).forEach((beat) => onBeat?.(beat));
+    timeline.tick(delta).forEach((beat) => {
+      if (beat.kind === 'burst' && !reduceMotion) burst.burst();
+      onBeat?.(beat);
+    });
     motion.tick(delta, { open: timeline.opened, charging: charging || (timeline.teasing && !reduceMotion) });
     seam.update({ charge: motion.shake, shown: timeline.shown, pulse: timeline.pulse });
     const openness = Math.max(0, motion.openness);
@@ -86,6 +92,7 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
       flash.current.color.copy(seam.color);
       flash.current.intensity = timeline.pulse * FLASH_INTENSITY;
     }
+    burst.update(delta, timeline.burstAge, seam.color);
     if (aura.current) {
       const material = aura.current.material as SpriteMaterial;
       material.color.copy(seam.color);
@@ -105,6 +112,8 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
       <group ref={turntable}>
         <group ref={shaker}>
           {children}
+          {/* At the box mouth, so the walls hide where the rays start. */}
+          <primitive object={burst.root} position={[0, 0.8, 0]} />
           <pointLight ref={light} position={[0, 0.75, 0]} intensity={0} distance={3} />
         </group>
       </group>
@@ -117,12 +126,14 @@ const ELEVATION = MathUtils.degToRad(14);
 /** Half-extents to keep in view (MODEL.md bounds, padded for rotation): closed box vs fully open lid. */
 const CLOSED = { centerY: 0.52, halfHeight: 0.8, halfWidth: 0.82 };
 const OPEN = { centerY: 0.92, halfHeight: 1.08, halfWidth: 0.95 };
+const KICK_PUNCH = 0.08;
+const KICK_SHUDDER = 0.06;
 
 /**
  * Places the camera so the box fits the canvas in both directions, whatever its aspect ratio.
  * A fixed camera only fits one shape: tall cards cropped the sides and the open lid left the frame.
  */
-function FitCamera({ motion }: { motion: BoxMotion }) {
+function FitCamera({ motion, timeline, reduceMotion }: { motion: BoxMotion; timeline: RevealTimeline; reduceMotion: boolean }) {
   const camera = useThree((state) => state.camera) as PerspectiveCamera;
   const { width, height } = useThree((state) => state.size);
 
@@ -133,10 +144,15 @@ function FitCamera({ motion }: { motion: BoxMotion }) {
     const halfWidth = MathUtils.lerp(CLOSED.halfWidth, OPEN.halfWidth, openness);
     const tanV = Math.tan(MathUtils.degToRad(FOV / 2));
     const tanH = tanV * (width / height);
-    const distance = Math.max(halfHeight / tanV, halfWidth / tanH);
+    const age = reduceMotion ? null : timeline.burstAge;
+    // The burst kicks the camera: a quick punch in plus a shudder that dies within half a second.
+    const kick = age === null ? 0 : Math.exp(-age * 8);
+    const distance = Math.max(halfHeight / tanV, halfWidth / tanH) * (1 - KICK_PUNCH * kick);
+    const shudderX = Math.sin((age ?? 0) * 57) * KICK_SHUDDER * kick;
+    const shudderY = Math.cos((age ?? 0) * 43) * KICK_SHUDDER * kick;
 
-    camera.position.set(0, centerY + distance * Math.sin(ELEVATION), distance * Math.cos(ELEVATION));
-    camera.lookAt(0, centerY, 0);
+    camera.position.set(shudderX, centerY + shudderY + distance * Math.sin(ELEVATION), distance * Math.cos(ELEVATION));
+    camera.lookAt(shudderX * 0.5, centerY, 0);
   });
   return null;
 }
@@ -187,7 +203,7 @@ export function BoxStage({
         {/* R3F's canvas claims touches; letting them through keeps parent scrolls, presses and the drag working. */}
         <View style={fill} pointerEvents="none">
           <Canvas frameloop={spinning ? 'always' : 'demand'} camera={{ fov: FOV }}>
-            <FitCamera motion={motion} />
+            <FitCamera motion={motion} timeline={timeline} reduceMotion={reduceMotion} />
             <BoxLighting tier={tier} />
             <Suspense fallback={null}>
               <Rig

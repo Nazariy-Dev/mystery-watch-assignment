@@ -56,6 +56,17 @@ describe('RevealTimeline', () => {
     expect(timeline.pulse).toBeLessThan(0.1);
   });
 
+  it('times the burst effects from the moment the lid blows, not from the start', () => {
+    const timeline = new RevealTimeline();
+    timeline.start('common');
+    play(timeline, 0.5);
+    expect(timeline.burstAge).toBeNull();
+
+    play(timeline, 1);
+    expect(timeline.burstAge).toBeGreaterThan(0.5);
+    expect(timeline.burstAge).toBeLessThan(0.7);
+  });
+
   it('returns to a sealed box on reset, ready for the next opening', () => {
     const timeline = new RevealTimeline();
     timeline.start('epic');
