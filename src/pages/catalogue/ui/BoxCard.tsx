@@ -25,16 +25,17 @@ const ThemedIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.tex
 export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, onPress }: BoxCardProps) {
   const variantStyles = styles.useVariants({ tier: box.tier });
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const range = [(index - 1) * snap, index * snap, (index + 1) * snap];
-    return {
-      opacity: interpolate(scrollX.value, range, [0.55, 1, 0.55], 'clamp'),
-      transform: [{ scale: interpolate(scrollX.value, range, [0.9, 1, 0.9], 'clamp') }],
-    };
-  });
+  const range = [(index - 1) * snap, index * snap, (index + 1) * snap];
+  const scaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: interpolate(scrollX.value, range, [0.9, 1, 0.9], 'clamp') }],
+  }));
+  // Side cards fade via an overlay, not opacity: a translucent view on Android shows its own elevation shadow through itself.
+  const dimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollX.value, range, [0.5, 0, 0.5], 'clamp'),
+  }));
 
   return (
-    <Animated.View style={[{ width }, animatedStyle]}>
+    <Animated.View style={[{ width }, scaleStyle]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${box.name}, ${box.tier}, ${box.price} coins`}
@@ -57,6 +58,7 @@ export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, o
           </View>
         </View>
       </Pressable>
+      <Animated.View style={[styles.dim, dimStyle]} pointerEvents="none" />
     </Animated.View>
   );
 }
@@ -83,6 +85,15 @@ const styles = StyleSheet.create((theme) => ({
   },
   pressed: {
     transform: [{ scale: 0.98 }],
+  },
+  dim: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: theme.radius.lg,
+    backgroundColor: theme.colors.background,
   },
   chip: {
     alignSelf: 'flex-start',

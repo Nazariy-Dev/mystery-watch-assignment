@@ -2,6 +2,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
 import { Suspense, useRef, useState, type ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import { useReducedMotion } from 'react-native-reanimated';
 import { MathUtils, type Group, type PerspectiveCamera, type PointLight } from 'three';
 
 import type { Rarity } from '@/shared/api';
@@ -24,6 +25,8 @@ type BoxStageProps = {
   spinning?: boolean;
   /** Horizontal drags turn the box; vertical drags still reach the parent scroll view. */
   inspectable?: boolean;
+  /** Makes the stage a labelled image for screen readers; omit when a parent already describes the box. */
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -105,8 +108,11 @@ export function BoxStage({
   glow,
   spinning = true,
   inspectable = false,
+  accessibilityLabel,
   style,
 }: BoxStageProps) {
+  // Reduce Motion stops the idle spin and the charge shake; the lid still opens, as it carries the result.
+  const reduceMotion = useReducedMotion();
   const [spin] = useState(() => new SpinController());
   const [motion] = useState(() => new BoxMotion());
   const drag = usePanGesture({
@@ -123,7 +129,12 @@ export function BoxStage({
 
   return (
     <GestureDetector gesture={drag}>
-      <View style={style}>
+      <View
+        style={style}
+        accessible={accessibilityLabel !== undefined}
+        accessibilityRole={accessibilityLabel ? 'image' : undefined}
+        accessibilityLabel={accessibilityLabel}
+      >
         {/* R3F's canvas claims touches; letting them through keeps parent scrolls, presses and the drag working. */}
         <View style={fill} pointerEvents="none">
           <Canvas frameloop={spinning ? 'always' : 'demand'} camera={{ fov: FOV }}>
@@ -133,9 +144,9 @@ export function BoxStage({
               <Rig
                 spin={spin}
                 motion={motion}
-                spinning={spinning}
+                spinning={spinning && !reduceMotion}
                 open={open}
-                charging={charging}
+                charging={charging && !reduceMotion}
                 glowColor={darkTheme.rarity[glow ?? tier]}
               >
                 <BoxModel tier={tier} motion={motion} />

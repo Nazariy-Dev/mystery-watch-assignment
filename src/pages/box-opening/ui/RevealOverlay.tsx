@@ -5,6 +5,7 @@ import Animated, {
   FadeIn,
   FadeInDown,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -29,10 +30,12 @@ type RevealOverlayProps = {
 export function RevealOverlay({ item, canOpenAnother, selling, error, onKeep, onSell, onOpenAnother }: RevealOverlayProps) {
   const { watch } = item;
   const pulse = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reduceMotion) return;
     pulse.value = withRepeat(withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [pulse]);
+  }, [pulse, reduceMotion]);
 
   const haloStyle = useAnimatedStyle(() => ({
     opacity: 0.55 + pulse.value * 0.35,

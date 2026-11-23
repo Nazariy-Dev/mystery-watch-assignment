@@ -72,5 +72,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   disabled: {
     opacity: 0.4,
+    shadowOpacity: 0,
+    elevation: 0,
   },
 }));

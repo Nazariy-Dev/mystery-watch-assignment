@@ -62,8 +62,15 @@ export function HoldToOpen({ label, disabled, onChargingChange, onComplete }: Ho
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint="Press and hold to open the box"
+      accessibilityHint="Opens the box and spends the coins"
       accessibilityState={{ disabled }}
+      // Screen-reader users can't easily hold, so their activate gesture opens straight away.
+      accessibilityActions={[{ name: 'activate' }]}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName !== 'activate' || disabled) return;
+        progress.value = 1;
+        complete();
+      }}
       disabled={disabled}
       onPressIn={onPressIn}
       onPressOut={onPressOut}

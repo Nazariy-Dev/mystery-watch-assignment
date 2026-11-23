@@ -17,7 +17,7 @@ export function CataloguePage() {
       <View style={styles.header}>
         <View>
           <Text variant="label" tone="primary">Mystery Watch</Text>
-          <Text variant="title">Pick your box</Text>
+          <Text variant="title" accessibilityRole="header">Pick your box</Text>
         </View>
         <CoinBalance />
       </View>

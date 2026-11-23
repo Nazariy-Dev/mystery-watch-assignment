@@ -66,7 +66,7 @@ function WatchDetails({ item, onSold }: { item: OwnedItem; onSold: () => void })
       </View>
       <View style={styles.titleBlock}>
         <Text variant="label" style={styles.rarity(watch.rarity)}>{watch.rarity}</Text>
-        <Text variant="display" style={styles.center}>{watch.name}</Text>
+        <Text variant="display" accessibilityRole="header" style={styles.center}>{watch.name}</Text>
         <Text tone="muted">{watch.brand}</Text>
       </View>
       <View style={styles.facts}>

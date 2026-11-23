@@ -1,3 +1,4 @@
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
@@ -17,6 +18,8 @@ export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
   const { boxId } = route.params;
   const { data: box, isError, refetch } = useGetBoxQuery(boxId);
   const { data: me } = useGetMeQuery();
+  // The opening modal keeps this screen mounted; unmounting the canvas frees its GL context meanwhile.
+  const isFocused = useIsFocused();
 
   return (
     <Screen withBottomInset={false}>
@@ -28,11 +31,20 @@ export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
       {box ? (
         <>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <BoxStage tier={box.tier} inspectable style={styles.stage} />
+            {isFocused ? (
+              <BoxStage
+                tier={box.tier}
+                inspectable
+                accessibilityLabel={`3D model of the ${box.name} box`}
+                style={styles.stage}
+              />
+            ) : (
+              <View style={styles.stage} />
+            )}
             <Text variant="caption" tone="muted" style={styles.hint}>Drag to spin</Text>
             <View style={styles.titleBlock}>
               <Text variant="label" style={styles.rarityText(box.tier)}>{box.tier} box</Text>
-              <Text variant="display">{box.name}</Text>
+              <Text variant="display" accessibilityRole="header">{box.name}</Text>
               <Text tone="muted">{box.tagline}</Text>
             </View>
             <Odds box={box} />

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
@@ -21,6 +21,8 @@ const STAGE_RADIUS = 1;
 
 export function BoxCarousel({ boxes }: BoxCarouselProps) {
   const navigation = useNavigation();
+  // Covered screens stay mounted; dropping their canvases frees GL contexts for the screen on top.
+  const isFocused = useIsFocused();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = Math.round(screenWidth * 0.78);
   const snap = cardWidth + CARD_GAP;
@@ -62,7 +64,7 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
             snap={snap}
             width={cardWidth}
             scrollX={scrollX}
-            hasStage={Math.abs(index - focused) <= STAGE_RADIUS}
+            hasStage={isFocused && Math.abs(index - focused) <= STAGE_RADIUS}
             focused={index === focused}
             onPress={() => navigation.navigate('BoxDetails', { boxId: item.id })}
           />

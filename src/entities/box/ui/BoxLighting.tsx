@@ -9,8 +9,8 @@ type BoxLightingProps = {
 export function BoxLighting({ tier }: BoxLightingProps) {
   return (
     <>
-      <hemisphereLight args={['#ffffff', darkTheme.colors.background, 0.6]} />
-      <directionalLight position={[2.5, 4, 3]} intensity={2} />
+      <hemisphereLight args={['#ffffff', darkTheme.colors.background, 1]} />
+      <directionalLight position={[2.5, 4, 3]} intensity={2.6} />
       <directionalLight position={[-3, 2, -3]} intensity={3} color={darkTheme.rarity[tier]} />
     </>
   );

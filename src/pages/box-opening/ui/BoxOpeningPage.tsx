@@ -109,7 +109,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
       </View>
       <View style={styles.title}>
         <Text variant="label" style={styles.tier(box.tier)}>{box.tier} box</Text>
-        <Text variant="title">{box.name}</Text>
+        <Text variant="title" accessibilityRole="header">{box.name}</Text>
       </View>
       <BoxStage
         tier={box.tier}
@@ -117,6 +117,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         charging={phase === 'charging' || phase === 'opening'}
         glow={item?.watch.rarity}
         inspectable={phase === 'ready'}
+        accessibilityLabel={item ? `Open ${box.name} box` : `Closed ${box.name} box`}
         style={styles.stage}
       />
       <View style={styles.footer}>

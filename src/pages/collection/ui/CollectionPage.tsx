@@ -38,7 +38,7 @@ export function CollectionPage() {
       <View style={styles.header}>
         <View>
           <Text variant="label" tone="primary">Vault</Text>
-          <Text variant="title">Your collection</Text>
+          <Text variant="title" accessibilityRole="header">Your collection</Text>
         </View>
         <CoinBalance />
       </View>

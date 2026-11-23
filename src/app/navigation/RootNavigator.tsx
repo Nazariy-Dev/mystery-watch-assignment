@@ -31,7 +31,7 @@ const navigationTheme: Theme = {
 
 function Tabs() {
   return (
-    <Tab.Navigator tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>
+    <Tab.Navigator tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, animation: 'fade' }}>
       <Tab.Screen name="Shop" component={CataloguePage} />
       <Tab.Screen name="Vault" component={CollectionPage} />
     </Tab.Navigator>
@@ -42,7 +42,8 @@ function Tabs() {
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* One push animation on both platforms; Android's default rises from the bottom. */}
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
         <Stack.Screen name="Tabs" component={Tabs} />
         <Stack.Screen name="BoxDetails" component={BoxDetailsPage} />
         <Stack.Screen

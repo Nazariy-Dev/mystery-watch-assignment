@@ -5,10 +5,10 @@ import { darkTheme } from '@/shared/theme';
 
 /** Shell body color per tier; the seam glows in the tier's rarity color. */
 const BODY_COLORS: Record<Rarity, string> = {
-  common: '#4A5060',
-  rare: '#1E3A57',
-  epic: '#3A2457',
-  legendary: '#4A3412',
+  common: '#6E7890',
+  rare: '#2E6296',
+  epic: '#5E3C96',
+  legendary: '#8A6220',
 };
 
 const BODY_MATERIAL = 'ShellRole_Body_Matte';
