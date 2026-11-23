@@ -19,6 +19,8 @@ import { WatchImage } from '@/entities/watch';
 import type { OwnedItem, Rarity } from '@/shared/api';
 import { Button, CoinIcon, Text } from '@/shared/ui';
 
+import { easedRadialGradient } from '../lib/eased-gradient';
+
 type RevealOverlayProps = {
   item: OwnedItem;
   canOpenAnother: boolean;
@@ -130,15 +132,17 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
   halo: (rarity: Rarity) => ({
     position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: `${theme.rarity[rarity]}33`,
-    shadowColor: theme.rarity[rarity],
-    shadowOpacity: 0.9,
-    shadowRadius: 60,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 24,
+    width: 440,
+    height: 440,
+    // Full strength in the middle, eased out to nothing by 70% of the default farthest-corner radius, which is
+    // exactly the inscribed circle: the glow is round and edgeless without a clipping borderRadius.
+    // No shadow or elevation: both trace the view's outline and would bring a hard edge back.
+    backgroundImage: easedRadialGradient({
+      from: `${theme.rarity[rarity]}99`,
+      to: `${theme.rarity[rarity]}00`,
+      end: 0.7,
+      shape: 'circle',
+    }),
   }),
   watch: {
     height: 300,

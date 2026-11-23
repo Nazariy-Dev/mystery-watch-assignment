@@ -2,12 +2,16 @@ import { useEffect } from 'react';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-/** Smoothstep falloff from a clear center to dark edges; many stops along the curve keep it free of banding. */
-const SMOOTHSTEP_STOPS = Array.from({ length: 11 }, (_, i) => {
-  const t = i / 10;
-  const alpha = t * t * (3 - 2 * t);
-  return `rgba(5, 5, 14, ${alpha.toFixed(3)}) ${(32 + 56 * t).toFixed(1)}%`;
-}).join(', ');
+import { easedRadialGradient } from '../lib/eased-gradient';
+
+/** Clear center easing out to dark edges; the eased stops keep the falloff smooth and free of banding. */
+const VIGNETTE = easedRadialGradient({
+  from: 'rgba(5, 5, 14, 0)',
+  to: 'rgba(5, 5, 14, 1)',
+  start: 0.32,
+  end: 0.88,
+  shape: 'ellipse farthest-corner at center',
+});
 
 /**
  * Darkens the screen edges to pull focus onto the box. `strength` 0…1 is approached over `durationMs`,
@@ -32,6 +36,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundImage: `radial-gradient(ellipse farthest-corner at center, ${SMOOTHSTEP_STOPS})`,
+    backgroundImage: VIGNETTE,
   },
 });

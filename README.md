@@ -32,15 +32,32 @@ bunx expo lint
 
 - **Shop**: a snapping carousel of four boxes (Common → Legendary), each a live 3D model recolored for its tier and spinning while focused.
 - **Box details**: a larger box you can drag to spin, a stacked odds bar, the possible contents with chances and coin values, and a **Buy & open** button. If you can't afford the box, the button is disabled and shows how many coins you're short.
-- **Opening**:
-  - Hold the button for 1.2 s to open. The box shakes harder and the vibration gets heavier as the hold builds. Let go early and nothing is bought.
-  - A full hold sends the purchase. The box keeps shaking until the result arrives.
-  - The box then swings to face you, the lid springs open, and light in the won watch's rarity color fills the inside.
-  - A result card shows the watch, with **Keep it**, **Sell** and **Open again**.
+- **Opening**: the centerpiece, built as one sequence of anticipation, then a hint, then the payoff.
+  - **Arrival.** The box drops onto the stage and bounces, with a thud, while the camera eases in. Faint dust motes drift around it.
+  - **Hold to open.** Hold the button for 1.2 s. As the hold builds:
+    - the box shakes harder and its lid strains against the latch;
+    - the seam heats toward white and a halo builds behind the box;
+    - the motes are drawn into the box and the screen edges darken;
+    - a rising hum plays and the vibration gets heavier.
+
+    Let go early and nothing is bought.
+  - **Rarity hint.** A full hold sends the purchase. Once the result arrives, the box turns to face you and its seam climbs the rarity ladder: common, then rare, then epic, then legendary, stopping at what you won. Each step comes with:
+    - a pulse of light and color across the screen;
+    - the rarity name;
+    - a thump you can hear and feel.
+  - **Burst.** After a short pause the lid blows open:
+    - a flash, with light beams and sparks in the rarity color;
+    - a camera kick, a boom and a fanfare.
+  - **Bigger for rarer results.** The burst grows with rarity: more sparks and longer beams, harder flashes and haptics, slow motion for epic and legendary, confetti, and a stamped "LEGENDARY" badge.
+  - **Result card.** It shows the watch, with **Keep it**, **Sell** and **Open again**.
+  - **Skip.** Tap the box to hurry: the first tap skips the rest of the hint, the second goes straight to the card.
 - **Vault**: your watches, rarest first, with their count and total value. Each opens a details page where you can sell it after confirming. **Reset demo** restores 100,000 coins and an empty vault.
 - **Errors**: every request can fail (5% by default). Failures show a message with a retry, and the balance never changes on a failed request.
 - **Accessibility**:
-  - With the system's Reduce Motion setting on, the boxes don't spin or shake and the reveal glow doesn't pulse.
+  - With the system's Reduce Motion setting on, the opening keeps its colors, light and sound but drops the movement:
+    - the boxes don't spin, shake or drop in;
+    - there are no camera kicks, sparks, motes, confetti or full-screen flashes;
+    - the reveal glow doesn't pulse.
   - Screen readers announce page titles as headings and the 3D boxes as labelled images.
   - With a screen reader on, the normal double-tap opens the box, because holding is impractical.
 
@@ -63,11 +80,14 @@ bunx expo lint
 src/
   app/       providers, navigation (stack + tabs), Redux store, Unistyles setup
   pages/     catalogue, box-details, box-opening, collection, watch-details
-  entities/  box (API, 3D stage, hinge/tier/motion models), player (wallet + inventory API, coin chip), watch (image)
+  entities/  box (API, 3D stage, models for the hinge, tier colors, motion and the reveal timeline, plus the effects), player (wallet + inventory API, coin chip), watch (image)
   shared/    api (contract, RTK Query base, mock backend), ui kit, theme, config (env, route types), lib (storage, count-up)
 ```
 
-Each slice exports through its own `index.ts`, and imports only point down the layers. Code lives in a page until a second page needs it. For example, the hold-to-open button and the reveal card stay in `pages/box-opening`.
+Each slice exports through its own `index.ts`, and imports only point down the layers. Code lives in a page until a second page needs it. For example, `pages/box-opening` keeps the screen's own pieces:
+- the hold-to-open button and the reveal card;
+- the 2D overlays: hint callouts, flashes, confetti and the edge vignette;
+- the sound effects.
 
 ### Data flow
 
@@ -84,10 +104,21 @@ Each slice exports through its own `index.ts`, and imports only point down the l
 - **One model, four looks.** The GLB is loaded once and cloned for each view. The body and seam materials are cloned before they're recolored, so recoloring one box doesn't repaint the others.
 - **Hinge.** The lid and wordmark are moved under a group placed at the hinge point given in `MODEL.md`, so opening the lid is a single rotation. A unit test checks that the closed pose is unchanged and that the open lid's corner matches the documented bounds.
 - **Camera.** `FitCamera` fits the documented closed and open bounds to whatever shape the canvas is, so the box is framed the same in a tall card or a wide header.
-- **Animation without re-renders.**
-  - The spin, the drag and fling, the lid spring and the shake are small plain classes (`SpinController`, `BoxMotion`), each with unit tests.
-  - They're advanced every frame in R3F's `useFrame`, so React never re-renders during animation.
-  - Drag gestures run on the JS thread and write to the same objects.
+- **Animation without re-renders.** Every moving part is a small plain class with unit tests:
+  - `SpinController`: the spin, drag and fling;
+  - `BoxMotion`: the lid spring, shake and rattle;
+  - `Entrance`: the drop and bounce;
+  - `MoteField`: the dust;
+  - `SparkBurst`: the spark fountain.
+
+  They're advanced every frame in R3F's `useFrame`, so React never re-renders during animation. Drag gestures run on the JS thread and write to the same objects.
+- **The reveal is a timeline.** `RevealTimeline` stages the result the server already returned:
+  - the rarity steps, the pause, the burst and the hand-over to the card;
+  - the slow-motion clock;
+  - skipping.
+
+  Each moment fires once as a beat, and the page turns beats into haptics, sounds and overlays. How hard each rarity celebrates is one table, `CELEBRATION`.
+- **Effects without extra libraries.** Glows, light beams and sparks are additive sprites, planes and points, using gradient textures generated in code. There's no post-processing, and no image assets for effects.
 - **Performance.**
   - At most three 3D views are mounted in the carousel: the focused card and its neighbours.
   - Only the focused one renders continuously; the others render only when something changes.
@@ -100,5 +131,5 @@ Each slice exports through its own `index.ts`, and imports only point down the l
 - **The watches are 2D.** The supplied watch images are flat PNGs, so the reveal shows the watch as an animated card over the opened box rather than as an object inside the 3D scene.
 - **Dev builds only:** the dev client's floating tools button can cover the coin chip.
 - **Sounds are synthesized**, not downloaded: `scripts/synthesize-sounds.py` generates every WAV in `src/pages/box-opening/sounds`, so there is no third-party audio to license. They respect the iOS silent switch and mix with the user's music.
-- **Not checked on a device:** Reduce Motion and the screen-reader double-tap. They're implemented, but they need the system settings turned on to try.
+- **Not checked on a device:** the Reduce Motion behavior and the screen-reader double-tap. They're implemented, but they need the system settings turned on to try.
 - **Brief message after a sale:** for one frame after selling, the watch details page can show "no longer in your vault" before it closes.
