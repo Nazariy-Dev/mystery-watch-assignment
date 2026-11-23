@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This is a take-home assignment, a React Native + TypeScript "Mystery Watch" app. The brief is in [README.md](README.md), and the supplied assets are in `assets/`. The stack is Expo with Bun as the package manager and Jest for tests. Commands are listed under Development Commands below.
+This is a take-home assignment, a React Native + TypeScript "Mystery Watch" app. The brief is in [ASSIGNMENT.md](ASSIGNMENT.md), and the supplied assets are in `assets/`. The stack is Expo with Bun as the package manager and Jest for tests. Commands are listed under Development Commands below.
 
-## Requirements (from README.md)
+## Requirements (from ASSIGNMENT.md)
 
 - Standalone mobile app: browse mystery boxes at different prices, see each box's possible contents, buy with a virtual balance, open boxes, and manage a collection of won watches.
 - The **scrollable catalogue must render boxes as real-time 3D models**. Static images or prerecorded video are not allowed. Several live 3D views in one scrolling list is the main performance risk.
