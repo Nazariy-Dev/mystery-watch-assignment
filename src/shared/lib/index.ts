@@ -1,0 +1,1 @@
+export { persistStorage } from './storage';

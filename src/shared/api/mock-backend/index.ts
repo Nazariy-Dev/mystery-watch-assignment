@@ -1,18 +1,24 @@
 import { API_BASE_URL } from '@/shared/config';
 
-import { handlers } from './handlers';
+import { mockBackendConfig } from './config';
+import { error, handle } from './handlers';
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * In-app stand-in for the network: a `fetch`-compatible function that answers requests
- * to `API_BASE_URL` from local handlers. Plugged into RTK Query as `fetchBaseQuery`'s `fetchFn`,
- * so no global `fetch` is patched. Unknown routes get a 404, like a real server.
+ * In-app stand-in for the network, shaped like `fetch` so RTK Query can use it as `fetchFn`.
+ * Adds random latency and occasional failures; a failed request never reaches a handler,
+ * so it has no side effects.
  */
-export async function mockFetch(request: Request): Promise<Response> {
-  const path = request.url.startsWith(API_BASE_URL) ? request.url.slice(API_BASE_URL.length) : request.url;
-  const handler = handlers[`${request.method} ${path.split('?')[0]}`];
+export async function mockFetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  const request = new Request(input, init);
+  const { minLatencyMs, maxLatencyMs, failureRate, random } = mockBackendConfig;
 
-  if (!handler) {
-    return new Response(JSON.stringify({ message: `No mock for ${request.method} ${path}` }), { status: 404 });
-  }
-  return handler(request);
+  await wait(minLatencyMs + random() * (maxLatencyMs - minLatencyMs));
+  if (random() < failureRate) return error(503, 'Connection hiccup. Please try again.');
+
+  const url = request.url.startsWith(API_BASE_URL) ? request.url.slice(API_BASE_URL.length) : request.url;
+  return handle(request.method, url.split('?')[0]);
 }
+
+export { mockBackendConfig } from './config';

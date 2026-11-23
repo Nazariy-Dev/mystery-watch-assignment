@@ -42,4 +42,3 @@ export const darkTheme = {
 } as const;
 
 export type AppTheme = typeof darkTheme;
-export type Rarity = keyof AppTheme['rarity'];

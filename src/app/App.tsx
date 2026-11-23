@@ -1,13 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 import { RootNavigator } from './navigation/RootNavigator';
+import { persistor, store } from './store';
 
-/** App root. */
 export default function App() {
   return (
-    <>
-      <StatusBar style="light" />
-      <RootNavigator />
-    </>
+    <Provider store={store}>
+      <PersistGate persistor={persistor} loading={null}>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </PersistGate>
+    </Provider>
   );
 }
