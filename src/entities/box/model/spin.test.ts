@@ -27,4 +27,13 @@ describe('SpinController', () => {
     const yaw = spin.yaw;
     expect(spin.tick(0.1, false)).toBe(yaw);
   });
+
+  it('parks at the nearest turn of the requested angle, taking the short way', () => {
+    const spin = new SpinController();
+    spin.yaw = 4 * Math.PI + 0.5;
+    for (let i = 0; i < 120; i++) spin.tick(1 / 60, true, Math.PI);
+
+    // 4π + 0.5 is π − 0.5 from 5π but π + 0.5 from 3π.
+    expect(spin.yaw).toBeCloseTo(5 * Math.PI, 1);
+  });
 });

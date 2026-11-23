@@ -1,6 +1,8 @@
 const AUTO_SPIN = 0.6;
 const RADIANS_PER_PX = 0.012;
 const FLING_DECAY = 3;
+const PARK_RATE = 4;
+const TURN = Math.PI * 2;
 
 /**
  * Yaw of a turntable box: an idle spin, a drag that takes over directly, and a fling that decays back into the idle spin.
@@ -29,8 +31,15 @@ export class SpinController {
     this.velocity = vx * RADIANS_PER_PX;
   }
 
-  tick(delta: number, autoSpin: boolean) {
+  /** With `parkYaw`, eases to the nearest turn of that angle instead of spinning, so it never winds the long way round. */
+  tick(delta: number, autoSpin: boolean, parkYaw?: number) {
     if (this.dragging) return this.yaw;
+    if (parkYaw !== undefined) {
+      const target = parkYaw + Math.round((this.yaw - parkYaw) / TURN) * TURN;
+      this.velocity = 0;
+      this.yaw += (target - this.yaw) * (1 - Math.exp(-PARK_RATE * delta));
+      return this.yaw;
+    }
     this.velocity *= Math.exp(-FLING_DECAY * delta);
     this.yaw += ((autoSpin ? AUTO_SPIN : 0) + this.velocity) * delta;
     return this.yaw;
