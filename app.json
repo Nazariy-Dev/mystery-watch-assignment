@@ -26,7 +26,54 @@
     },
     "plugins": [
       "expo-dev-client",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "ios": {
+            "fonts": [
+              "node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf",
+              "node_modules/@expo-google-fonts/unbounded/800ExtraBold/Unbounded_800ExtraBold.ttf",
+              "node_modules/@expo-google-fonts/manrope/500Medium/Manrope_500Medium.ttf",
+              "node_modules/@expo-google-fonts/manrope/600SemiBold/Manrope_600SemiBold.ttf",
+              "node_modules/@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf"
+            ]
+          },
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Unbounded",
+                "fontDefinitions": [
+                  {
+                    "path": "node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/unbounded/800ExtraBold/Unbounded_800ExtraBold.ttf",
+                    "weight": 800
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Manrope",
+                "fontDefinitions": [
+                  {
+                    "path": "node_modules/@expo-google-fonts/manrope/500Medium/Manrope_500Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/manrope/600SemiBold/Manrope_600SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf",
+                    "weight": 700
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {

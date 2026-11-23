@@ -1,32 +1,11 @@
-import { Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold } from '@expo-google-fonts/manrope';
-import { Unbounded_700Bold, Unbounded_800ExtraBold, useFonts } from '@expo-google-fonts/unbounded';
-import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { Button, Screen, Text } from '@/shared/ui';
 
-SplashScreen.preventAutoHideAsync();
-
-/** App root: holds the splash until fonts are ready so text never flashes in a fallback face. */
+/** App root. */
 export default function App() {
-  const [fontsLoaded, fontError] = useFonts({
-    Unbounded_700Bold,
-    Unbounded_800ExtraBold,
-    Manrope_500Medium,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
-  });
-
-  useEffect(() => {
-    if (fontError) console.warn('Font loading failed, falling back to system fonts', fontError);
-    if (fontsLoaded || fontError) SplashScreen.hideAsync();
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) return null;
-
   return (
     <Screen>
       <StatusBar style="light" />

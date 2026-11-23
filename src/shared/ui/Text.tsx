@@ -18,13 +18,34 @@ const styles = StyleSheet.create((theme) => ({
   text: {
     variants: {
       variant: {
-        display: { fontFamily: theme.fonts.displayHeavy, fontSize: 32, lineHeight: 38 },
-        title: { fontFamily: theme.fonts.display, fontSize: 20, lineHeight: 26 },
-        body: { fontFamily: theme.fonts.body, fontSize: 16, lineHeight: 22 },
-        caption: { fontFamily: theme.fonts.body, fontSize: 13, lineHeight: 18 },
+        display: {
+          fontFamily: theme.fonts.display,
+          fontWeight: theme.fontWeight.extraBold,
+          fontSize: 32,
+          lineHeight: 38,
+        },
+        title: {
+          fontFamily: theme.fonts.display,
+          fontWeight: theme.fontWeight.bold,
+          fontSize: 20,
+          lineHeight: 26,
+        },
+        body: {
+          fontFamily: theme.fonts.body,
+          fontWeight: theme.fontWeight.medium,
+          fontSize: 16,
+          lineHeight: 22,
+        },
+        caption: {
+          fontFamily: theme.fonts.body,
+          fontWeight: theme.fontWeight.medium,
+          fontSize: 13,
+          lineHeight: 18,
+        },
         // Small caps-style labels for tiers, odds and stats.
         label: {
-          fontFamily: theme.fonts.bodyBold,
+          fontFamily: theme.fonts.body,
+          fontWeight: theme.fontWeight.bold,
           fontSize: 12,
           lineHeight: 16,
           letterSpacing: 1.2,

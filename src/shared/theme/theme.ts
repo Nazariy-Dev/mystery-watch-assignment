@@ -19,12 +19,17 @@ export const darkTheme = {
     epic: '#B66DFF',
     legendary: '#FFB020',
   },
+  /** Embedded at build time by the expo-font plugin (app.json); pair each family with a `fontWeight`. */
   fonts: {
-    display: 'Unbounded_700Bold',
-    displayHeavy: 'Unbounded_800ExtraBold',
-    body: 'Manrope_500Medium',
-    bodySemiBold: 'Manrope_600SemiBold',
-    bodyBold: 'Manrope_700Bold',
+    display: 'Unbounded',
+    body: 'Manrope',
+  },
+  /** Only weights embedded in app.json: Unbounded 700/800, Manrope 500/600/700. */
+  fontWeight: {
+    medium: '500',
+    semiBold: '600',
+    bold: '700',
+    extraBold: '800',
   },
   /** 4pt grid: `gap(4)` → 16. */
   gap: (multiplier: number) => multiplier * 4,

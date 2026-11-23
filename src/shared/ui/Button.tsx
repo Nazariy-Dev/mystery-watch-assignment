@@ -57,6 +57,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   label: {
     fontFamily: theme.fonts.display,
+    fontWeight: theme.fontWeight.bold,
     fontSize: 16,
     letterSpacing: 0.5,
     variants: {
