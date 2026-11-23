@@ -1,37 +1,67 @@
+import { Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold } from '@expo-google-fonts/manrope';
+import { Unbounded_700Bold, Unbounded_800ExtraBold, useFonts } from '@expo-google-fonts/unbounded';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
-import { mockFetch } from '@/shared/api/mock-backend';
-import { API_BASE_URL } from '@/shared/config';
+import { Button, Screen, Text } from '@/shared/ui';
 
-/** Temporary root: proves the in-app mock backend returns real Response objects on device. */
+SplashScreen.preventAutoHideAsync();
+
+/** App root: holds the splash until fonts are ready so text never flashes in a fallback face. */
 export default function App() {
-  const [status, setStatus] = useState('Checking mock backend…');
+  const [fontsLoaded, fontError] = useFonts({
+    Unbounded_700Bold,
+    Unbounded_800ExtraBold,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+  });
 
   useEffect(() => {
-    mockFetch(new Request(`${API_BASE_URL}/health`))
-      .then((res) => res.json())
-      .then((body: { ok: boolean }) => setStatus(`Mock backend ok: ${body.ok}`))
-      .catch((error: unknown) => setStatus(`Mock backend failed: ${String(error)}`));
-  }, []);
+    if (fontError) console.warn('Font loading failed, falling back to system fonts', fontError);
+    if (fontsLoaded || fontError) SplashScreen.hideAsync();
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{status}</Text>
+    <Screen>
       <StatusBar style="light" />
-    </View>
+      {/* Temporary style showcase; replaced by navigation in the next step. */}
+      <View style={styles.content}>
+        <Text variant="label" tone="primary">Mystery Watch</Text>
+        <Text variant="display">Open the vault</Text>
+        <Text tone="muted">Spin, unlock and collect luxury watches.</Text>
+        <Text variant="title" tone="coin">◉ 1,000</Text>
+        <View style={styles.rarities}>
+          <Text variant="label" style={styles.common}>Common</Text>
+          <Text variant="label" style={styles.rare}>Rare</Text>
+          <Text variant="label" style={styles.epic}>Epic</Text>
+          <Text variant="label" style={styles.legendary}>Legendary</Text>
+        </View>
+        <Button label="Open box" onPress={() => {}} />
+        <Button label="View odds" variant="secondary" onPress={() => {}} />
+        <Button label="Not enough coins" onPress={() => {}} disabled />
+      </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create((theme) => ({
+  content: {
     flex: 1,
-    backgroundColor: '#0B0B1A',
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: theme.gap(4),
   },
-  text: {
-    color: '#F2F3FF',
+  rarities: {
+    flexDirection: 'row',
+    gap: theme.gap(3),
   },
-});
+  common: { color: theme.rarity.common },
+  rare: { color: theme.rarity.rare },
+  epic: { color: theme.rarity.epic },
+  legendary: { color: theme.rarity.legendary },
+}));

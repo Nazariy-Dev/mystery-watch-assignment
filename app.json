@@ -24,6 +24,24 @@
     "web": {
       "favicon": "./assets/app/favicon.png"
     },
-    "plugins": ["expo-dev-client"]
+    "plugins": [
+      "expo-dev-client",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B0B1A",
+          "image": "./assets/app/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false
+        }
+      ]
+    ],
+    "backgroundColor": "#0B0B1A"
   }
 }

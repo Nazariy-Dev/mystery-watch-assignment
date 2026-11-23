@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo-google-fonts/manrope": "^0.4.3",
+    "@expo-google-fonts/unbounded": "^0.4.1",
     "expo": "~58.0.26",
     "expo-dev-client": "~58.0.21",
+    "expo-font": "~58.0.12",
+    "expo-navigation-bar": "~58.0.4",
+    "expo-splash-screen": "~58.0.14",
     "expo-status-bar": "~58.0.5",
     "react": "19.3.0",
-    "react-native": "0.88.1"
+    "react-native": "0.88.1",
+    "react-native-nitro-modules": "0.37.2",
+    "react-native-unistyles": "^3.8.2"
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
@@ -34,6 +41,10 @@
     "preset": "jest-expo",
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "setupFiles": [
+      "react-native-unistyles/mocks",
+      "./src/app/styles/unistyles.ts"
+    ]
   }
 }

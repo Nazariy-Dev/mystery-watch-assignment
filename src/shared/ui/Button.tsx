@@ -1,0 +1,75 @@
+import { Pressable, Text } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
+
+type ButtonProps = {
+  label: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+};
+
+/** Chunky pill button; sinks slightly while pressed for tactile, game-like feedback. */
+export function Button({ label, onPress, variant = 'primary', disabled = false }: ButtonProps) {
+  const variantStyles = styles.useVariants({ variant });
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        variantStyles.container,
+        pressed && styles.pressed,
+        disabled && styles.disabled,
+      ]}
+    >
+      <Text style={variantStyles.label}>{label}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    minHeight: 56,
+    paddingHorizontal: theme.gap(6),
+    borderRadius: theme.radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    variants: {
+      variant: {
+        primary: {
+          backgroundColor: theme.colors.primary,
+          // Neon glow; Android ignores shadowColor tint, so elevation gives it depth there.
+          shadowColor: theme.colors.primary,
+          shadowOpacity: 0.5,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 6,
+        },
+        secondary: {
+          backgroundColor: theme.colors.surfaceRaised,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+        },
+      },
+    },
+  },
+  label: {
+    fontFamily: theme.fonts.display,
+    fontSize: 16,
+    letterSpacing: 0.5,
+    variants: {
+      variant: {
+        primary: { color: theme.colors.onPrimary },
+        secondary: { color: theme.colors.text },
+      },
+    },
+  },
+  pressed: {
+    transform: [{ translateY: 2 }, { scale: 0.98 }],
+  },
+  disabled: {
+    opacity: 0.4,
+  },
+}));
