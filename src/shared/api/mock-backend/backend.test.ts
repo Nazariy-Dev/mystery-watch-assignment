@@ -12,7 +12,7 @@ const call = async <T>(method: 'GET' | 'POST', path: string) => {
 const getMe = async () => (await call<Me>('GET', '/me')).body;
 
 beforeEach(async () => {
-  Object.assign(mockBackendConfig, { minLatencyMs: 0, maxLatencyMs: 0, failureRate: 0, random: () => 0 });
+  Object.assign(mockBackendConfig, { minLatencyMs: 0, maxLatencyMs: 0, failureRate: 0, startingBalance: 1000, random: () => 0 });
   await call('POST', '/reset');
 });
 

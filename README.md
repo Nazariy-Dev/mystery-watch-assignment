@@ -37,7 +37,7 @@ bunx expo lint
   - A full hold sends the purchase. The box keeps shaking until the result arrives.
   - The box then swings to face you, the lid springs open, and light in the won watch's rarity color fills the inside.
   - A result card shows the watch, with **Keep it**, **Sell** and **Open again**.
-- **Vault**: your watches, rarest first, with their count and total value. Each opens a details page where you can sell it after confirming. **Reset demo** restores 1,000 coins and an empty vault.
+- **Vault**: your watches, rarest first, with their count and total value. Each opens a details page where you can sell it after confirming. **Reset demo** restores 100,000 coins and an empty vault.
 - **Errors**: every request can fail (5% by default). Failures show a message with a retry, and the balance never changes on a failed request.
 - **Accessibility**:
   - With the system's Reduce Motion setting on, the boxes don't spin or shake and the reveal glow doesn't pulse.

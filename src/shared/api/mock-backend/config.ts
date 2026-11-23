@@ -3,5 +3,7 @@ export const mockBackendConfig = {
   minLatencyMs: 300,
   maxLatencyMs: 900,
   failureRate: 0.05,
+  /** Balance for a fresh install and after a demo reset; generous so every box can be tried many times. */
+  startingBalance: 100_000,
   random: Math.random,
 };

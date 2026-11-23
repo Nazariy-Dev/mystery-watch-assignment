@@ -28,7 +28,7 @@ export function CollectionPage() {
   const vaultValue = items.reduce((sum, item) => sum + item.watch.value, 0);
 
   const confirmReset = () =>
-    Alert.alert('Reset demo?', 'Your vault is emptied and your balance goes back to 1,000 coins.', [
+    Alert.alert('Reset demo?', 'Your vault is emptied and your balance goes back to 100,000 coins.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Reset', style: 'destructive', onPress: () => resetDemo() },
     ]);
