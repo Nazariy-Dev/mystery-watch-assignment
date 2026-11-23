@@ -7,4 +7,10 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*', 'ios/*', 'android/*'],
   },
+  {
+    // Module augmentation (React Navigation, Unistyles) needs `interface X extends Y {}`.
+    rules: {
+      '@typescript-eslint/no-empty-object-type': ['warn', { allowInterfaces: 'with-single-extends' }],
+    },
+  },
 ]);

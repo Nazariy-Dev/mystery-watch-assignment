@@ -4,11 +4,11 @@ import { StyleSheet } from 'react-native-unistyles';
 
 type ScreenProps = {
   children: ReactNode;
+  withBottomInset?: boolean;
 };
 
-/** Full-screen themed container padded by the device safe-area insets. */
-export function Screen({ children }: ScreenProps) {
-  return <View style={styles.container}>{children}</View>;
+export function Screen({ children, withBottomInset = true }: ScreenProps) {
+  return <View style={[styles.container, withBottomInset && styles.bottomInset]}>{children}</View>;
 }
 
 const styles = StyleSheet.create((theme, rt) => ({
@@ -16,7 +16,9 @@ const styles = StyleSheet.create((theme, rt) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
     paddingTop: rt.insets.top,
-    paddingBottom: rt.insets.bottom,
     paddingHorizontal: theme.gap(4),
+  },
+  bottomInset: {
+    paddingBottom: rt.insets.bottom,
   },
 }));

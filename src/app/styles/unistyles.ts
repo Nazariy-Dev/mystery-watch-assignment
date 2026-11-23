@@ -7,8 +7,6 @@ type AppThemes = {
 };
 
 declare module 'react-native-unistyles' {
-  // Unistyles' documented augmentation pattern: the empty extension is what injects our theme type.
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface UnistylesThemes extends AppThemes {}
 }
 
