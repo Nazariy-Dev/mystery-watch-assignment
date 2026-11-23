@@ -1,26 +1,27 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
-import { Suspense, useRef, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import { useReducedMotion } from 'react-native-reanimated';
-import { MathUtils, type Group, type PerspectiveCamera, type PointLight } from 'three';
+import { AdditiveBlending, MathUtils, type Group, type PerspectiveCamera, type PointLight, type Sprite, type SpriteMaterial } from 'three';
 
 import type { Rarity } from '@/shared/api';
-import { darkTheme } from '@/shared/theme';
-
+import { createGlowTexture } from '../lib/glow-texture';
 import { BoxMotion } from '../model/motion';
+import { RevealTimeline, type RevealBeat } from '../model/reveal';
+import { SeamGlow } from '../model/seam';
 import { SpinController } from '../model/spin';
 import { BoxLighting } from './BoxLighting';
 import { BoxModel } from './BoxModel';
 
 type BoxStageProps = {
   tier: Rarity;
-  /** Springs the lid open; toggling back to false springs it shut. */
-  open?: boolean;
-  /** Shakes the box with building intensity, for the hold-to-open charge. */
+  /** Shakes the box with building intensity and heats the seam, for the hold-to-open charge. */
   charging?: boolean;
-  /** Color of the light that floods out of the box as the lid opens; defaults to the box tier. */
-  glow?: Rarity;
+  /** The won rarity: setting it plays the tease and bursts the lid open; clearing it seals the box again. */
+  result?: Rarity;
+  /** Fires on each reveal beat, from the render loop, for haptics and for handing over to the result card. */
+  onBeat?: (beat: RevealBeat) => void;
   /** When false the canvas renders on demand only, so off-focus boxes cost no frames. */
   spinning?: boolean;
   /** Horizontal drags turn the box; vertical drags still reach the parent scroll view. */
@@ -33,41 +34,81 @@ type BoxStageProps = {
 /** Model -Z faces the camera here, so the lid (hinged at +Z) falls away from it; the offset keeps a three-quarter view. */
 const OPEN_YAW = Math.PI + 0.45;
 const GLOW_INTENSITY = 6;
+/** Front light that washes the visible faces in the teased color on each step. */
+const FLASH_INTENSITY = 14;
+/** Sits behind the box, so the box itself occludes the bright core and only a halo shows around it. */
+const AURA_Z = -0.8;
+/** Kept under the canvas's narrowest visible span at the aura's depth, or the sprite is clipped into a rectangle. */
+const AURA_MAX_SCALE = 1.9;
 
 type RigProps = {
   spin: SpinController;
   motion: BoxMotion;
+  timeline: RevealTimeline;
+  seam: SeamGlow;
   spinning: boolean;
-  open: boolean;
   charging: boolean;
-  glowColor: string;
+  reduceMotion: boolean;
+  onBeat?: (beat: RevealBeat) => void;
   children: ReactNode;
 };
 
 // Everything per-frame lives in useFrame on plain objects, so animation never re-renders React.
-function Rig({ spin, motion, spinning, open, charging, glowColor, children }: RigProps) {
+function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, onBeat, children }: RigProps) {
   const turntable = useRef<Group>(null);
   const shaker = useRef<Group>(null);
   const light = useRef<PointLight>(null);
+  const flash = useRef<PointLight>(null);
+  const aura = useRef<Sprite>(null);
+  const glowTexture = useMemo(() => createGlowTexture(), []);
+
+  useEffect(() => () => glowTexture.dispose(), [glowTexture]);
 
   useFrame((_, delta) => {
-    motion.tick(delta, { open, charging });
-    const yaw = spin.tick(delta, spinning, open ? OPEN_YAW : undefined);
+    timeline.tick(delta).forEach((beat) => onBeat?.(beat));
+    motion.tick(delta, { open: timeline.opened, charging: charging || (timeline.teasing && !reduceMotion) });
+    seam.update({ charge: motion.shake, shown: timeline.shown, pulse: timeline.pulse });
+    const openness = Math.max(0, motion.openness);
+
+    // Once the result is in, the box swings round to face the camera for the burst.
+    const yaw = spin.tick(delta, spinning, timeline.running ? OPEN_YAW : undefined);
     if (turntable.current) turntable.current.rotation.y = yaw;
     if (shaker.current) {
       shaker.current.rotation.z = motion.wobble * 0.05;
       shaker.current.position.x = motion.wobble * 0.02;
+      shaker.current.scale.setScalar(reduceMotion ? 1 : 1 + timeline.pulse * 0.12);
     }
-    if (light.current) light.current.intensity = Math.max(0, motion.openness) * GLOW_INTENSITY;
+    if (light.current) {
+      light.current.color.copy(seam.color);
+      light.current.intensity = openness * GLOW_INTENSITY;
+    }
+    if (flash.current) {
+      flash.current.color.copy(seam.color);
+      flash.current.intensity = timeline.pulse * FLASH_INTENSITY;
+    }
+    if (aura.current) {
+      const material = aura.current.material as SpriteMaterial;
+      material.color.copy(seam.color);
+      material.opacity = Math.min(1, motion.shake * 0.35 + timeline.pulse + openness * 0.7);
+      aura.current.visible = material.opacity > 0.01;
+      aura.current.scale.setScalar(Math.min(AURA_MAX_SCALE, 1.4 + motion.shake * 0.2 + timeline.pulse * 0.5));
+      aura.current.position.y = 0.6 + openness * 0.4;
+    }
   });
 
   return (
-    <group ref={turntable}>
-      <group ref={shaker}>
-        {children}
-        <pointLight ref={light} position={[0, 0.75, 0]} color={glowColor} intensity={0} distance={3} />
+    <>
+      <sprite ref={aura} position={[0, 0.6, AURA_Z]} visible={false}>
+        <spriteMaterial map={glowTexture} blending={AdditiveBlending} depthWrite={false} transparent opacity={0} />
+      </sprite>
+      <pointLight ref={flash} position={[0, 0.8, 1.6]} intensity={0} distance={4} />
+      <group ref={turntable}>
+        <group ref={shaker}>
+          {children}
+          <pointLight ref={light} position={[0, 0.75, 0]} intensity={0} distance={3} />
+        </group>
       </group>
-    </group>
+    </>
   );
 }
 
@@ -103,9 +144,9 @@ function FitCamera({ motion }: { motion: BoxMotion }) {
 /** Self-contained 3D view of one box: camera, lighting and the tier-colored model. */
 export function BoxStage({
   tier,
-  open = false,
   charging = false,
-  glow,
+  result,
+  onBeat,
   spinning = true,
   inspectable = false,
   accessibilityLabel,
@@ -115,6 +156,14 @@ export function BoxStage({
   const reduceMotion = useReducedMotion();
   const [spin] = useState(() => new SpinController());
   const [motion] = useState(() => new BoxMotion());
+  const [timeline] = useState(() => new RevealTimeline());
+  const seam = useMemo(() => new SeamGlow(tier), [tier]);
+
+  useEffect(() => {
+    if (result) timeline.start(result);
+    else timeline.reset();
+  }, [result, timeline]);
+
   const drag = usePanGesture({
     // SpinController is a plain JS object, so the callbacks must run on the JS thread, not as worklets.
     runOnJS: true,
@@ -144,12 +193,14 @@ export function BoxStage({
               <Rig
                 spin={spin}
                 motion={motion}
+                timeline={timeline}
+                seam={seam}
                 spinning={spinning && !reduceMotion}
-                open={open}
                 charging={charging && !reduceMotion}
-                glowColor={darkTheme.rarity[glow ?? tier]}
+                reduceMotion={reduceMotion}
+                onBeat={onBeat}
               >
-                <BoxModel tier={tier} motion={motion} />
+                <BoxModel tier={tier} motion={motion} seam={seam} />
               </Rig>
             </Suspense>
           </Canvas>

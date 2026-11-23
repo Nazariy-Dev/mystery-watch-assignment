@@ -1,11 +1,11 @@
 import { usePreventRemove } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
-import { BoxStage, useGetBoxQuery } from '@/entities/box';
+import { BoxStage, useGetBoxQuery, type RevealBeat } from '@/entities/box';
 import { CoinBalance, useGetMeQuery, useOpenBoxMutation, useSellItemMutation } from '@/entities/player';
 import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
@@ -13,14 +13,12 @@ import { IconButton, Screen, Text } from '@/shared/ui';
 
 import { HoldToOpen } from './HoldToOpen';
 import { RevealOverlay } from './RevealOverlay';
+import { TeaseCallout, type TeaseStep } from './TeaseCallout';
 
 type BoxOpeningPageProps = NativeStackScreenProps<RootStackParamList, 'BoxOpening'>;
 
-/** ready → charging (held) → opening (request in flight) → opened (lid springs) → revealed (result card). */
+/** ready → charging (held) → opening (request in flight) → opened (the stage plays the tease and burst) → revealed (result card). */
 type Phase = 'ready' | 'charging' | 'opening' | 'opened' | 'revealed';
-
-/** Time for the lid to swing open and the light to flood out before the result card covers the box. */
-const REVEAL_DELAY_MS = 1100;
 
 const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
 
@@ -37,17 +35,12 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
   const [phase, setPhase] = useState<Phase>('ready');
   const [item, setItem] = useState<OwnedItem | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [teaseStep, setTeaseStep] = useState<TeaseStep | null>(null);
   // Remounts the hold button so its fill starts empty for each attempt.
   const [attempt, setAttempt] = useState(0);
 
   // The purchase is already committed on the server; leaving now would skip the reveal of what was paid for.
   usePreventRemove(phase === 'opening' || phase === 'opened', () => {});
-
-  useEffect(() => {
-    if (phase !== 'opened') return;
-    const timer = setTimeout(() => setPhase('revealed'), REVEAL_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [phase]);
 
   if (!box) {
     return (
@@ -69,7 +62,6 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
       const result = await openBox(boxId).unwrap();
       setItem(result.item);
       setPhase('opened');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (failure) {
       setError(errorMessage(failure));
       setPhase('ready');
@@ -78,8 +70,21 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
     }
   };
 
+  const onBeat = (beat: RevealBeat) => {
+    if (beat.kind === 'step') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      setTeaseStep((previous) => ({ rarity: beat.rarity, final: beat.final, count: (previous?.count ?? 0) + 1 }));
+    } else if (beat.kind === 'burst') {
+      setTeaseStep(null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      setPhase('revealed');
+    }
+  };
+
   const reset = () => {
     setItem(null);
+    setTeaseStep(null);
     setError(null);
     setPhase('ready');
     setAttempt((n) => n + 1);
@@ -99,7 +104,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
 
   const busy = phase === 'opening' || phase === 'opened';
   const holdLabel =
-    phase === 'charging' ? 'Keep holding…' : phase === 'opening' ? 'Unlocking…' : phase === 'opened' ? 'Opened!' : 'Hold to open';
+    phase === 'charging' ? 'Keep holding…' : busy ? 'Unlocking…' : 'Hold to open';
 
   return (
     <Screen>
@@ -113,9 +118,9 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
       </View>
       <BoxStage
         tier={box.tier}
-        open={item !== null}
         charging={phase === 'charging' || phase === 'opening'}
-        glow={item?.watch.rarity}
+        result={item?.watch.rarity}
+        onBeat={onBeat}
         inspectable={phase === 'ready'}
         accessibilityLabel={item ? `Open ${box.name} box` : `Closed ${box.name} box`}
         style={styles.stage}
@@ -141,6 +146,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           onComplete={open}
         />
       </View>
+      {teaseStep && <TeaseCallout step={teaseStep} />}
       {phase === 'revealed' && item && (
         <RevealOverlay
           item={item}

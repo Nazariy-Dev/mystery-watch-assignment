@@ -27,6 +27,11 @@ export class BoxMotion {
     }
   }
 
+  /** Lid lift as a fraction of fully open: it strains against the latch while the box shakes. */
+  get rattle() {
+    return Math.max(0, Math.sin(this.time * 23)) * this.shake * 0.02;
+  }
+
   /** Side-to-side wobble in -shake…shake. */
   get wobble() {
     return Math.sin(this.time * 42) * this.shake;

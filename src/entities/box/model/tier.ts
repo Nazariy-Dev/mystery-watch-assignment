@@ -12,7 +12,7 @@ const BODY_COLORS: Record<Rarity, string> = {
 };
 
 const BODY_MATERIAL = 'ShellRole_Body_Matte';
-const ACCENT_MATERIAL = 'ShellRole_SeamAccent_Accent';
+export const ACCENT_MATERIAL = 'ShellRole_SeamAccent_Accent';
 
 /**
  * Recolors the box body and seam for a tier. Materials are cloned first because `scene.clone()`
