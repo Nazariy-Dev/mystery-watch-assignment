@@ -25,9 +25,12 @@ export class SparkBurst {
     this.lifespans = new Float32Array(capacity);
   }
 
-  /** Launches every spark from `origin` in a fountain that fans out around the vertical. */
-  emit([x, y, z]: [number, number, number]) {
-    for (let i = 0; i < this.capacity; i += 1) {
+  /** Launches up to `count` idle sparks from `origin` in a fountain that fans out around the vertical; live sparks keep flying. */
+  emit([x, y, z]: [number, number, number], count = this.capacity) {
+    let launched = 0;
+    for (let i = 0; i < this.capacity && launched < count; i += 1) {
+      if (this.brightness[i] > 0) continue;
+      launched += 1;
       const angle = this.random() * Math.PI * 2;
       const outward = 0.3 + this.random() * 1.2;
       this.positions.set([x, y, z], i * 3);

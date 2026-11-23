@@ -67,6 +67,54 @@ describe('RevealTimeline', () => {
     expect(timeline.burstAge).toBeLessThan(0.7);
   });
 
+  it('skips the rest of the climb straight to the burst, without firing the skipped steps', () => {
+    const timeline = new RevealTimeline();
+    timeline.start('legendary');
+    timeline.tick(0.1);
+    timeline.skip();
+    const beats = timeline.tick(1 / 60).map((beat) => beat.kind);
+
+    expect(beats).toEqual(['burst']);
+    expect(timeline.shown).toBe('legendary');
+  });
+
+  it('skips from the open box to the result card on a second tap', () => {
+    const timeline = new RevealTimeline();
+    timeline.start('rare');
+    timeline.skip();
+    timeline.tick(1 / 60);
+    timeline.skip();
+    expect(timeline.tick(1 / 60).map((beat) => beat.kind)).toEqual(['done']);
+  });
+
+  it('lets rarer results linger longer on the open box before the card covers it', () => {
+    const doneAfterBurst = (rarity: 'common' | 'legendary') => {
+      const timeline = new RevealTimeline();
+      timeline.start(rarity);
+      for (let t = 0; t < 10; t += 1 / 60) {
+        if (timeline.tick(1 / 60).some((beat) => beat.kind === 'done')) return timeline.burstAge ?? 0;
+      }
+      return Infinity;
+    };
+    expect(doneAfterBurst('legendary')).toBeGreaterThan(doneAfterBurst('common') + 0.5);
+  });
+
+  it('slows the burst effects for a legendary but never for a common', () => {
+    const slowest = (rarity: 'common' | 'legendary') => {
+      const timeline = new RevealTimeline();
+      timeline.start(rarity);
+      let min = 1;
+      for (let t = 0; t < 6; t += 1 / 60) {
+        timeline.tick(1 / 60);
+        min = Math.min(min, timeline.effectsTimeScale);
+      }
+      return { min, end: timeline.effectsTimeScale };
+    };
+    expect(slowest('common').min).toBe(1);
+    expect(slowest('legendary').min).toBeLessThan(0.5);
+    expect(slowest('legendary').end).toBe(1);
+  });
+
   it('returns to a sealed box on reset, ready for the next opening', () => {
     const timeline = new RevealTimeline();
     timeline.start('epic');

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming, ZoomIn } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withTiming, ZoomIn } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
 import type { Rarity } from '@/shared/api';
@@ -10,10 +10,13 @@ export type TeaseStep = { rarity: Rarity; final: boolean; count: number };
 /** Full-screen color flash plus the rarity name punching in, once per tease step. */
 export function TeaseCallout({ step }: { step: TeaseStep }) {
   const flash = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    // Repeated full-screen flashes are exactly what Reduce Motion asks to avoid; the colored name still shows.
+    if (reduceMotion) return;
     flash.value = withSequence(withTiming(0.35, { duration: 60 }), withTiming(0, { duration: 500, easing: Easing.out(Easing.quad) }));
-  }, [flash, step.count]);
+  }, [flash, step.count, reduceMotion]);
 
   const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value }));
 

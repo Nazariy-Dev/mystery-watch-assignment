@@ -1,17 +1,18 @@
 import { usePreventRemove } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
-import { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
-import { BoxStage, useGetBoxQuery, type RevealBeat } from '@/entities/box';
+import { BoxStage, useGetBoxQuery, type BoxStageHandle, type RevealBeat } from '@/entities/box';
 import { CoinBalance, useGetMeQuery, useOpenBoxMutation, useSellItemMutation } from '@/entities/player';
 import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
 import { IconButton, Screen, Text } from '@/shared/ui';
 
 import { BurstFlash } from './BurstFlash';
+import { Confetti } from './Confetti';
 import { HoldToOpen } from './HoldToOpen';
 import { RevealOverlay } from './RevealOverlay';
 import { TeaseCallout, type TeaseStep } from './TeaseCallout';
@@ -20,6 +21,12 @@ type BoxOpeningPageProps = NativeStackScreenProps<RootStackParamList, 'BoxOpenin
 
 /** ready → charging (held) → opening (request in flight) → opened (the stage plays the tease and burst) → revealed (result card). */
 type Phase = 'ready' | 'charging' | 'opening' | 'opened' | 'revealed';
+
+/** Peak opacity of the burst flash per rarity. */
+const FLASH_STRENGTH: Record<Rarity, number> = { common: 0.5, rare: 0.7, epic: 0.85, legendary: 0.95 };
+/** Heavy thumps on the burst per rarity, so a legendary is felt as well as seen. */
+const BURST_THUMPS: Record<Rarity, number> = { common: 1, rare: 1, epic: 2, legendary: 3 };
+const THUMP_GAP_MS = 110;
 
 const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
 
@@ -38,6 +45,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [teaseStep, setTeaseStep] = useState<TeaseStep | null>(null);
   const [burst, setBurst] = useState(false);
+  const stage = useRef<BoxStageHandle>(null);
   // Remounts the hold button so its fill starts empty for each attempt.
   const [attempt, setAttempt] = useState(0);
 
@@ -79,7 +87,10 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
     } else if (beat.kind === 'burst') {
       setTeaseStep(null);
       setBurst(true);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      const thumps = item ? BURST_THUMPS[item.watch.rarity] : 1;
+      for (let i = 0; i < thumps; i += 1) {
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), i * THUMP_GAP_MS);
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       setPhase('revealed');
@@ -121,15 +132,26 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         <Text variant="label" style={styles.tier(box.tier)}>{box.tier} box</Text>
         <Text variant="title" accessibilityRole="header">{box.name}</Text>
       </View>
-      <BoxStage
-        tier={box.tier}
-        charging={phase === 'charging' || phase === 'opening'}
-        result={item?.watch.rarity}
-        onBeat={onBeat}
-        inspectable={phase === 'ready'}
-        accessibilityLabel={item ? `Open ${box.name} box` : `Closed ${box.name} box`}
-        style={styles.stage}
-      />
+      <View style={styles.stage}>
+        <BoxStage
+          ref={stage}
+          tier={box.tier}
+          charging={phase === 'charging' || phase === 'opening'}
+          result={item?.watch.rarity}
+          onBeat={onBeat}
+          inspectable={phase === 'ready'}
+          accessibilityLabel={item ? `Open ${box.name} box` : `Closed ${box.name} box`}
+          style={styles.fill}
+        />
+        {phase === 'opened' && (
+          <Pressable
+            style={styles.skip}
+            accessibilityRole="button"
+            accessibilityLabel="Skip to the result"
+            onPress={() => stage.current?.skip()}
+          />
+        )}
+      </View>
       <View style={styles.footer}>
         {error ? (
           <Text variant="caption" style={styles.error}>{error}</Text>
@@ -137,6 +159,8 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           <Text variant="caption" tone="muted" style={styles.center}>
             {me ? `You need ${shortBy.toLocaleString('en-US')} more coins` : 'Loading balance…'}
           </Text>
+        ) : phase === 'opened' ? (
+          <Text variant="caption" tone="muted" style={styles.center}>Tap the box to skip</Text>
         ) : (
           <Text variant="caption" tone="muted" style={styles.center}>
             {box.price.toLocaleString('en-US')} coins · let go early to cancel
@@ -152,7 +176,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         />
       </View>
       {teaseStep && <TeaseCallout step={teaseStep} />}
-      {burst && phase !== 'revealed' && <BurstFlash />}
+      {burst && phase !== 'revealed' && item && <BurstFlash strength={FLASH_STRENGTH[item.watch.rarity]} />}
       {phase === 'revealed' && item && (
         <RevealOverlay
           item={item}
@@ -163,6 +187,10 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           onSell={sell}
           onOpenAnother={reset}
         />
+      )}
+      {/* Starts at the burst and keeps falling over the result card. */}
+      {burst && item && (item.watch.rarity === 'epic' || item.watch.rarity === 'legendary') && (
+        <Confetti rarity={item.watch.rarity} />
       )}
     </Screen>
   );
@@ -188,6 +216,16 @@ const styles = StyleSheet.create((theme) => ({
   }),
   stage: {
     flex: 1,
+  },
+  fill: {
+    flex: 1,
+  },
+  skip: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   footer: {
     gap: theme.gap(3),

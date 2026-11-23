@@ -30,6 +30,16 @@ describe('SparkBurst', () => {
     expect(later.filter((y, i) => y < rising[i]).length).toBeGreaterThan(25);
   });
 
+  it('launches a second wave on top of the first, so a legendary burst can keep erupting', () => {
+    const sparks = new SparkBurst(50);
+    const lit = () => Array.from(sparks.brightness).filter((value) => value > 0).length;
+    sparks.emit([0, 1, 0], 20);
+    expect(lit()).toBe(20);
+    run(sparks, 0.2);
+    sparks.emit([0, 1, 0], 20);
+    expect(lit()).toBe(40);
+  });
+
   it('burns every spark out within two seconds, so the effect never lingers over the result', () => {
     const sparks = new SparkBurst(50);
     sparks.emit([0, 1, 0]);

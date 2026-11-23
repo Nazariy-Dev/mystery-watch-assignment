@@ -12,6 +12,7 @@ import {
   type Color,
 } from 'three';
 
+import type { Celebration } from '../model/celebration';
 import { SparkBurst } from '../model/sparks';
 import { createBeamTexture, createGlowTexture } from './glow-texture';
 
@@ -19,7 +20,10 @@ const RAY_COUNT = 9;
 const RAY_WIDTH = 0.28;
 const RAY_HEIGHT = 1.5;
 const RAY_SPIN = 0.5;
-const SPARK_COUNT = 140;
+/** Enough for the biggest burst's waves to overlap. */
+const SPARK_COUNT = 220;
+/** Effect-clock seconds at which each spark wave launches. */
+const WAVE_TIMES = [0, 0.35];
 const SPARK_HEAT = 0.35;
 
 /**
@@ -30,6 +34,9 @@ export class BurstVisuals {
   readonly root = new Group();
   private readonly rays = new Group();
   private readonly sparks = new SparkBurst(SPARK_COUNT);
+  /** Effect clock: seconds since the burst, but slowed during slow motion. */
+  private age = 0;
+  private waves = 0;
   private readonly sparkColors = new Float32Array(SPARK_COUNT * 3);
   private readonly sparkGeometry = new BufferGeometry();
   private readonly rayGeometry = new PlaneGeometry(RAY_WIDTH, RAY_HEIGHT).translate(0, RAY_HEIGHT / 2, 0);
@@ -68,21 +75,30 @@ export class BurstVisuals {
     this.root.visible = false;
   }
 
-  /** Launches the spark fountain; the rays follow `burstAge` on their own. */
-  burst() {
-    this.sparks.emit([0, 0.1, 0]);
-  }
+  /**
+   * Advances the burst by `delta` effect seconds (already slowed for slow motion). While `opened` is false
+   * everything is hidden and rewound, ready for the next opening. `sparks` false skips the fountain.
+   */
+  update(delta: number, { opened, celebration, color, sparks }: { opened: boolean; celebration: Celebration; color: Color; sparks: boolean }) {
+    this.root.visible = opened;
+    if (!opened) {
+      this.age = 0;
+      this.waves = 0;
+      return;
+    }
+    this.age += delta;
+    const age = this.age;
 
-  /** @param burstAge seconds since the lid blew, or null while the box is sealed. */
-  update(delta: number, burstAge: number | null, color: Color) {
-    this.root.visible = burstAge !== null;
-    if (burstAge === null) return;
+    while (sparks && this.waves < celebration.sparks.length && age >= WAVE_TIMES[this.waves]) {
+      this.sparks.emit([0, 0.1, 0], celebration.sparks[this.waves]);
+      this.waves += 1;
+    }
 
-    // Snap in, flare, then settle to a steady glow that stays behind the rising watch.
-    const envelope = Math.min(1, burstAge / 0.12) * (0.4 + 0.6 * Math.exp(-burstAge * 2.2));
+    // Snap in, flare, then settle to a steady glow that stays behind the result.
+    const envelope = Math.min(1, age / 0.12) * (0.4 + 0.6 * Math.exp(-age * 2.2));
     this.rayMaterial.color.copy(color);
-    this.rayMaterial.opacity = envelope;
-    this.rays.scale.y = 1 - (1 - Math.min(1, burstAge / 0.3)) ** 3;
+    this.rayMaterial.opacity = Math.min(1, envelope * celebration.rays);
+    this.rays.scale.y = (1 - (1 - Math.min(1, age / 0.3)) ** 3) * (0.6 + 0.4 * celebration.rays);
     this.rays.rotation.y += delta * RAY_SPIN;
 
     this.sparks.tick(delta);

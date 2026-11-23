@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
-import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import { useReducedMotion } from 'react-native-reanimated';
@@ -15,7 +15,13 @@ import { SpinController } from '../model/spin';
 import { BoxLighting } from './BoxLighting';
 import { BoxModel } from './BoxModel';
 
+export type BoxStageHandle = {
+  /** Hurries the reveal: the first call jumps to the burst, the next to the result card. */
+  skip: () => void;
+};
+
 type BoxStageProps = {
+  ref?: Ref<BoxStageHandle>;
   tier: Rarity;
   /** Shakes the box with building intensity and heats the seam, for the hold-to-open charge. */
   charging?: boolean;
@@ -68,10 +74,7 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
   useEffect(() => () => burst.dispose(), [burst]);
 
   useFrame((_, delta) => {
-    timeline.tick(delta).forEach((beat) => {
-      if (beat.kind === 'burst' && !reduceMotion) burst.burst();
-      onBeat?.(beat);
-    });
+    timeline.tick(delta).forEach((beat) => onBeat?.(beat));
     motion.tick(delta, { open: timeline.opened, charging: charging || (timeline.teasing && !reduceMotion) });
     seam.update({ charge: motion.shake, shown: timeline.shown, pulse: timeline.pulse });
     const openness = Math.max(0, motion.openness);
@@ -92,7 +95,12 @@ function Rig({ spin, motion, timeline, seam, spinning, charging, reduceMotion, o
       flash.current.color.copy(seam.color);
       flash.current.intensity = timeline.pulse * FLASH_INTENSITY;
     }
-    burst.update(delta, timeline.burstAge, seam.color);
+    burst.update(delta * timeline.effectsTimeScale, {
+      opened: timeline.opened,
+      celebration: timeline.celebration,
+      color: seam.color,
+      sparks: !reduceMotion,
+    });
     if (aura.current) {
       const material = aura.current.material as SpriteMaterial;
       material.color.copy(seam.color);
@@ -163,6 +171,7 @@ export function BoxStage({
   charging = false,
   result,
   onBeat,
+  ref,
   spinning = true,
   inspectable = false,
   accessibilityLabel,
@@ -174,6 +183,8 @@ export function BoxStage({
   const [motion] = useState(() => new BoxMotion());
   const [timeline] = useState(() => new RevealTimeline());
   const seam = useMemo(() => new SeamGlow(tier), [tier]);
+
+  useImperativeHandle(ref, () => ({ skip: () => timeline.skip() }), [timeline]);
 
   useEffect(() => {
     if (result) timeline.start(result);

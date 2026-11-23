@@ -1,14 +1,19 @@
 import { useEffect } from 'react';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-/** A white full-screen flash that plays once on mount, timed to the lid bursting open. */
-export function BurstFlash() {
+/**
+ * A white full-screen flash that plays once on mount, timed to the lid bursting open.
+ * `strength` (0…1) is its peak opacity, so rarer results flash harder. Skipped under Reduce Motion.
+ */
+export function BurstFlash({ strength }: { strength: number }) {
   const flash = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    flash.value = withSequence(withTiming(0.85, { duration: 50 }), withTiming(0, { duration: 650, easing: Easing.out(Easing.cubic) }));
-  }, [flash]);
+    if (reduceMotion) return;
+    flash.value = withSequence(withTiming(strength, { duration: 50 }), withTiming(0, { duration: 650, easing: Easing.out(Easing.cubic) }));
+  }, [flash, strength, reduceMotion]);
 
   const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value }));
 
