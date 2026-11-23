@@ -1,13 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import { useMemo } from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { CoinBalance, useGetMeQuery, useResetDemoMutation } from '@/entities/player';
 import { WatchImage } from '@/entities/watch';
 import type { OwnedItem, Rarity } from '@/shared/api';
-import { Button, CoinIcon, Screen, Text } from '@/shared/ui';
+import { Button, CoinIcon, Screen, Text, Touchable } from '@/shared/ui';
 
+const SCROLL_PRESS_DELAY_MS = 100;
 const RARITY_RANK: Record<Rarity, number> = { legendary: 0, epic: 1, rare: 2, common: 3 };
 
 const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
@@ -106,9 +107,11 @@ function WatchCard({ item, onPress }: { item: OwnedItem; onPress: () => void }) 
   const { watch } = item;
 
   return (
-    <Pressable
+    <Touchable
       accessibilityRole="button"
       accessibilityLabel={`${watch.brand} ${watch.name}, ${watch.rarity}, worth ${watch.value} coins`}
+      // A scroll through the vault starts on a card; the delay keeps it from clicking.
+      unstable_pressDelay={SCROLL_PRESS_DELAY_MS}
       onPress={onPress}
       style={({ pressed }) => [styles.card(watch.rarity), pressed && styles.pressed]}
     >
@@ -121,7 +124,7 @@ function WatchCard({ item, onPress }: { item: OwnedItem; onPress: () => void }) 
         <CoinIcon size={14} />
         <Text variant="caption" tone="coin">{watch.value.toLocaleString('en-US')}</Text>
       </View>
-    </Pressable>
+    </Touchable>
   );
 }
 

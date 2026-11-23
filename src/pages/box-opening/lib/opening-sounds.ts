@@ -1,4 +1,4 @@
-import { setAudioModeAsync, useAudioPlayer, type AudioPlayer } from 'expo-audio';
+import { useAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { useEffect, useMemo } from 'react';
 
 import type { Rarity } from '@/shared/api';
@@ -44,11 +44,6 @@ export function useOpeningSounds() {
     }),
     [land, charge, burst, stepCommon, stepRare, stepEpic, stepLegendary, revealCommon, revealRare, revealEpic, revealLegendary],
   );
-
-  useEffect(() => {
-    // Game effects: obey the silent switch and never stop the user's own music.
-    setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers', shouldPlayInBackground: false });
-  }, []);
 
   useEffect(() => {
     // Rewind each effect as soon as it ends, so the next play starts at once instead of racing a seek.

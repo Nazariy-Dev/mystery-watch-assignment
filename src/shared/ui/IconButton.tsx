@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps } from 'react';
-import { Pressable } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+
+import { Touchable } from './Touchable';
 
 type IconButtonProps = {
   icon: ComponentProps<typeof Ionicons>['name'];
@@ -15,15 +16,16 @@ const ThemedIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.tex
 /** Round icon-only button for screen chrome such as back and close. */
 export function IconButton({ icon, accessibilityLabel, onPress }: IconButtonProps) {
   return (
-    <Pressable
+    <Touchable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       hitSlop={8}
+      feedback="back"
       onPress={onPress}
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
     >
       <ThemedIcon name={icon} size={22} />
-    </Pressable>
+    </Touchable>
   );
 }
 

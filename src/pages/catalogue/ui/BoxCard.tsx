@@ -1,11 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { BoxStage } from '@/entities/box';
 import type { Box } from '@/shared/api';
-import { CoinIcon, Text } from '@/shared/ui';
+import { CoinIcon, Text, Touchable } from '@/shared/ui';
 
 type BoxCardProps = {
   box: Box;
@@ -20,6 +20,7 @@ type BoxCardProps = {
   onPress: () => void;
 };
 
+const SCROLL_PRESS_DELAY_MS = 100;
 const ThemedIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.textMuted }));
 
 export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, onPress }: BoxCardProps) {
@@ -36,9 +37,11 @@ export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, o
 
   return (
     <Animated.View style={[{ width }, scaleStyle]}>
-      <Pressable
+      <Touchable
         accessibilityRole="button"
         accessibilityLabel={`${box.name}, ${box.tier}, ${box.price} coins`}
+        // A swipe through the carousel starts on a card; the delay keeps it from clicking.
+        unstable_pressDelay={SCROLL_PRESS_DELAY_MS}
         onPress={onPress}
         style={({ pressed }) => [variantStyles.card, pressed && styles.pressed]}
       >
@@ -57,7 +60,7 @@ export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, o
             <ThemedIcon name="arrow-forward-circle" size={28} />
           </View>
         </View>
-      </Pressable>
+      </Touchable>
       <Animated.View style={[styles.dim, dimStyle]} pointerEvents="none" />
     </Animated.View>
   );

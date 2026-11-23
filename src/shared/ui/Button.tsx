@@ -1,5 +1,7 @@
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+
+import { Touchable } from './Touchable';
 
 type ButtonProps = {
   label: string;
@@ -13,7 +15,7 @@ export function Button({ label, onPress, variant = 'primary', disabled = false }
   const variantStyles = styles.useVariants({ variant });
 
   return (
-    <Pressable
+    <Touchable
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
@@ -25,7 +27,7 @@ export function Button({ label, onPress, variant = 'primary', disabled = false }
       ]}
     >
       <Text style={variantStyles.label}>{label}</Text>
-    </Pressable>
+    </Touchable>
   );
 }
 

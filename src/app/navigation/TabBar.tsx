@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { ComponentProps } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import type { TabParamList } from '@/shared/config';
+import { Touchable } from '@/shared/ui';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -29,11 +30,12 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         };
 
         return (
-          <Pressable
+          <Touchable
             key={route.key}
             accessibilityRole="tab"
             accessibilityState={{ selected: focused }}
             accessibilityLabel={tab.label}
+            feedback="tab"
             onPress={onPress}
             style={[styles.tab, focused && styles.tabActive]}
           >
@@ -43,7 +45,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               uniProps={(theme) => ({ color: focused ? theme.colors.onPrimary : theme.colors.textMuted })}
             />
             <Text style={[styles.label, focused && styles.labelActive]}>{tab.label}</Text>
-          </Pressable>
+          </Touchable>
         );
       })}
     </View>

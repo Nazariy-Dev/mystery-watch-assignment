@@ -1,6 +1,6 @@
 """Synthesizes the box-opening sound effects as 16-bit mono WAVs. Pure Python: math, random, wave.
 
-Usage: python3 scripts/synthesize-sounds.py src/pages/box-opening/sounds
+Usage: python3 scripts/synthesize-sounds.py src
 """
 import math
 import random
@@ -106,12 +106,12 @@ def reverb(samples, wet=0.22, tail=0.6):
     return lowpass([o * (1 - wet) + w * wet for o, w in zip(out, wet_sum)], 9000)
 
 
-def write(name, samples, peak=0.85):
+def write(name, samples, peak=0.85, folder='pages/box-opening/sounds'):
     fade = int(0.02 * SR)
     for i in range(min(fade, len(samples))):
         samples[-1 - i] *= i / fade
     top = max(abs(s) for s in samples) or 1
-    with wave.open(f'{OUT}/{name}.wav', 'wb') as f:
+    with wave.open(f'{OUT}/{folder}/{name}.wav', 'wb') as f:
         f.setnchannels(1)
         f.setsampwidth(2)
         f.setframerate(SR)
@@ -201,5 +201,57 @@ for rarity, notes in fanfares.items():
     if rarity == 'legendary':
         mix(out, sparkle(2.2, 40, gain=0.3), 0.3, 0.7)
     write(f'reveal-{rarity}', reverb(out, wet=0.25, tail=0.6), peak=0.75)
+
+def resonate(samples, freq, q):
+    """Two-pole band-pass (RBJ, 0 dB peak): rings at `freq` for a time set by `q`, like one mode of a struck body."""
+    w = TAU * freq / SR
+    alpha = math.sin(w) / (2 * q)
+    b0, b2 = alpha, -alpha
+    a0, a1, a2 = 1 + alpha, -2 * math.cos(w), 1 - alpha
+    x1 = x2 = y1 = y2 = 0.0
+    out = []
+    for x in samples:
+        y = (b0 * x + b2 * x2 - a1 * y1 - a2 * y2) / a0
+        x2, x1, y2, y1 = x1, x, y1, y
+        out.append(y)
+    return out
+
+
+def wood_click(pitch, brightness=1.0, ring=1.0):
+    """
+    A struck plastic or wooden button: a 1.5 ms noise strike exciting a few resonant modes (strongest near 1.3 kHz,
+    with 950 Hz, 2.45 kHz and a little 250 Hz body), plus the raw strike for the bright edge. About 35 ms long.
+    `pitch` scales every mode, `brightness` the upper modes and the strike, `ring` how long the modes sustain.
+    """
+    seconds = 0.08
+    strike = [random.uniform(-1, 1) * math.exp(-i / (0.0012 * SR)) for i in range(int(seconds * SR))]
+    out = [0.0] * len(strike)
+    modes = ((1320, 42, 1.0), (940, 20, 0.45), (2450, 40, 0.9), (4100, 28, 0.8), (6200, 24, 0.5), (250, 5, 0.3))
+    for freq, q, gain in modes:
+        upper = brightness if freq > 2000 else 1.0
+        mix(out, resonate(strike, freq * pitch, q * ring), 0, gain * upper * q * ring / 6)
+    mix(out, highpass(strike, 3000), 0, 0.25 * brightness)
+    return out
+
+
+def denied_thud(pitch):
+    """A dull, short thud for tapping something unavailable: low and muffled, with nothing bright to read as success."""
+    out = thump(190 * pitch, 95 * pitch, 0.12, 28)
+    strike = [random.uniform(-1, 1) * math.exp(-i / (0.002 * SR)) for i in range(int(0.12 * SR))]
+    mix(out, resonate(strike, 420 * pitch, 6), 0, 0.8)
+    return lowpass(out, 1200)
+
+
+# UI clicks by meaning, each in three pitches about 3% apart: the app picks one at random so repeats don't wear.
+UI_CLICKS = {
+    'confirm': lambda pitch: (wood_click(0.9 * pitch), 0.35),
+    'back': lambda pitch: (wood_click(0.74 * pitch, brightness=0.5, ring=0.8), 0.28),
+    'tab': lambda pitch: (wood_click(1.05 * pitch, brightness=0.7, ring=0.6), 0.24),
+    'denied': lambda pitch: (denied_thud(pitch), 0.4),
+}
+for kind, make in UI_CLICKS.items():
+    for variant, pitch in enumerate((0.97, 1.0, 1.03), start=1):
+        samples, peak = make(pitch)
+        write(f'{kind}-{variant}', samples, peak=peak, folder='shared/lib/sounds')
 
 print('done')

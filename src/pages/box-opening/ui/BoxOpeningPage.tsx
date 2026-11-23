@@ -2,14 +2,14 @@ import { usePreventRemove } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { BoxStage, useGetBoxQuery, type BoxStageHandle, type RevealBeat } from '@/entities/box';
 import { CoinBalance, useGetMeQuery, useOpenBoxMutation, useSellItemMutation } from '@/entities/player';
 import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
-import { IconButton, Screen, Text } from '@/shared/ui';
+import { IconButton, Screen, Text, Touchable } from '@/shared/ui';
 
 import { revealSound, stepSound, useOpeningSounds } from '../lib/opening-sounds';
 import { BurstFlash } from './BurstFlash';
@@ -164,7 +164,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           style={styles.fill}
         />
         {phase === 'opened' && (
-          <Pressable
+          <Touchable
             style={styles.skip}
             accessibilityRole="button"
             accessibilityLabel="Skip to the result"
