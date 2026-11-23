@@ -88,7 +88,15 @@
           "enforceContrast": false
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
+      ]
     ],
     "backgroundColor": "#0B0B1A"
   }

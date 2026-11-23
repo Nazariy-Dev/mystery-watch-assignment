@@ -11,6 +11,7 @@ import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
 import { IconButton, Screen, Text } from '@/shared/ui';
 
+import { revealSound, stepSound, useOpeningSounds } from '../lib/opening-sounds';
 import { BurstFlash } from './BurstFlash';
 import { Confetti } from './Confetti';
 import { HoldToOpen } from './HoldToOpen';
@@ -28,6 +29,8 @@ const FLASH_STRENGTH: Record<Rarity, number> = { common: 0.5, rare: 0.7, epic: 0
 /** Heavy thumps on the burst per rarity, so a legendary is felt as well as seen. */
 const BURST_THUMPS: Record<Rarity, number> = { common: 1, rare: 1, epic: 2, legendary: 3 };
 const THUMP_GAP_MS = 110;
+/** The fanfare follows the boom instead of masking it. */
+const FANFARE_DELAY_MS = 250;
 
 const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
 
@@ -47,6 +50,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
   const [teaseStep, setTeaseStep] = useState<TeaseStep | null>(null);
   const [burst, setBurst] = useState(false);
   const stage = useRef<BoxStageHandle>(null);
+  const sounds = useOpeningSounds();
   // Remounts the hold button so its fill starts empty for each attempt.
   const [attempt, setAttempt] = useState(0);
 
@@ -77,6 +81,7 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
       setError(errorMessage(failure));
       setPhase('ready');
       setAttempt((n) => n + 1);
+      sounds.stop('charge');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
@@ -84,6 +89,9 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
   const onBeat = (beat: RevealBeat) => {
     if (beat.kind === 'step') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      // The charge hum swells through the wait for the result; the first step takes over from it.
+      sounds.mute('charge');
+      sounds.play(stepSound(beat.rarity));
       setTeaseStep((previous) => ({ rarity: beat.rarity, final: beat.final, count: (previous?.count ?? 0) + 1 }));
     } else if (beat.kind === 'burst') {
       setTeaseStep(null);
@@ -93,6 +101,11 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), i * THUMP_GAP_MS);
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      sounds.play('burst');
+      if (item) {
+        const fanfare = revealSound(item.watch.rarity);
+        setTimeout(() => sounds.play(fanfare), FANFARE_DELAY_MS);
+      }
     } else {
       setPhase('revealed');
     }
@@ -139,7 +152,10 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           tier={box.tier}
           entrance
           ambient
-          onLand={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+          onLand={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            sounds.play('land');
+          }}
           charging={phase === 'charging' || phase === 'opening'}
           result={item?.watch.rarity}
           onBeat={onBeat}
@@ -180,7 +196,12 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
           label={holdLabel}
           // Stays enabled while charging: disabling a Pressable mid-press cancels the hold.
           disabled={!canAfford || busy}
-          onChargingChange={(charging) => setPhase(charging ? 'charging' : 'ready')}
+          onChargingChange={(charging) => {
+            setPhase(charging ? 'charging' : 'ready');
+            // The hum rises with the hold; letting go early cuts it off, a full hold lets it swell on into the tease.
+            if (charging) sounds.play('charge');
+            else sounds.stop('charge');
+          }}
           onComplete={open}
         />
       </View>

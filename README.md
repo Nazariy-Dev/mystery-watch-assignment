@@ -55,7 +55,7 @@ bunx expo lint
 | Styling | react-native-unistyles 3: one dark "neon vault" theme. Safe-area insets come from `rt.insets`. Fonts are Unbounded and Manrope, embedded at build time by the `expo-font` plugin. |
 | State | Redux Toolkit with RTK Query, persisted to MMKV through redux-persist |
 | 3D | three.js through `@react-three/fiber/native` on `expo-gl` |
-| Motion | Reanimated 4, react-native-gesture-handler 3, expo-haptics |
+| Motion & sound | Reanimated 4, react-native-gesture-handler 3, expo-haptics, expo-audio |
 
 ### Folder layout (Feature-Sliced Design)
 
@@ -99,5 +99,6 @@ Each slice exports through its own `index.ts`, and imports only point down the l
 - **`.env` is committed** only because its single value is a fake, non-secret origin served inside the app. A production app would gitignore `.env` and commit a `.env.example` instead.
 - **The watches are 2D.** The supplied watch images are flat PNGs, so the reveal shows the watch as an animated card over the opened box rather than as an object inside the 3D scene.
 - **Dev builds only:** the dev client's floating tools button can cover the coin chip.
+- **Sounds are synthesized**, not downloaded: `scripts/synthesize-sounds.py` generates every WAV in `src/pages/box-opening/sounds`, so there is no third-party audio to license. They respect the iOS silent switch and mix with the user's music.
 - **Not checked on a device:** Reduce Motion and the screen-reader double-tap. They're implemented, but they need the system settings turned on to try.
 - **Brief message after a sale:** for one frame after selling, the watch details page can show "no longer in your vault" before it closes.
