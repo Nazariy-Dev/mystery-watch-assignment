@@ -1,10 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
-import { Suspense, useRef, type ReactNode } from 'react';
+import { Suspense, useRef, useState, type ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import { MathUtils, type Group, type PerspectiveCamera } from 'three';
 
 import type { Rarity } from '@/shared/api';
 
+import { SpinController } from '../model/spin';
 import { BoxLighting } from './BoxLighting';
 import { BoxModel } from './BoxModel';
 
@@ -14,25 +16,25 @@ type BoxStageProps = {
   openness?: number;
   /** When false the canvas renders on demand only, so off-focus boxes cost no frames. */
   spinning?: boolean;
+  /** Horizontal drags turn the box; vertical drags still reach the parent scroll view. */
+  inspectable?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-function Spin({ active, children }: { active: boolean; children: ReactNode }) {
+// Advanced from useFrame, so dragging and spinning never re-render React.
+function Spin({ active, spin, children }: { active: boolean; spin: SpinController; children: ReactNode }) {
   const group = useRef<Group>(null);
   useFrame((_, delta) => {
-    if (active && group.current) group.current.rotation.y += delta * 0.6;
+    const yaw = spin.tick(delta, active);
+    if (group.current) group.current.rotation.y = yaw;
   });
-  return (
-    <group ref={group} rotation-y={-0.6}>
-      {children}
-    </group>
-  );
+  return <group ref={group}>{children}</group>;
 }
 
 const FOV = 30;
 const ELEVATION = MathUtils.degToRad(14);
 /** Half-extents to keep in view (MODEL.md bounds, padded for rotation): closed box vs fully open lid. */
-const CLOSED = { centerY: 0.56, halfHeight: 0.72, halfWidth: 0.82 };
+const CLOSED = { centerY: 0.52, halfHeight: 0.8, halfWidth: 0.82 };
 const OPEN = { centerY: 0.92, halfHeight: 1.08, halfWidth: 0.95 };
 
 /**
@@ -58,22 +60,41 @@ function FitCamera({ openness }: { openness: number }) {
 }
 
 /** Self-contained 3D view of one box: camera, lighting and the tier-colored model. */
-export function BoxStage({ tier, openness = 0, spinning = true, style }: BoxStageProps) {
+export function BoxStage({ tier, openness = 0, spinning = true, inspectable = false, style }: BoxStageProps) {
+  const [spin] = useState(() => new SpinController());
+  const drag = usePanGesture({
+    // SpinController is a plain JS object, so the callbacks must run on the JS thread, not as worklets.
+    runOnJS: true,
+    enabled: inspectable,
+    // Claim only horizontal drags; vertical ones fail early and fall through to the parent scroll view.
+    activeOffsetX: [-8, 8],
+    failOffsetY: [-8, 8],
+    onActivate: () => spin.grab(),
+    onUpdate: (event) => spin.drag(event.translationX),
+    onDeactivate: (event) => spin.release(event.velocityX),
+  });
+
   return (
-    // R3F's canvas claims touches; letting them through keeps parent scrolls and presses working.
-    <View style={style} pointerEvents="none">
-      <Canvas
-        frameloop={spinning ? 'always' : 'demand'}
-        camera={{ fov: FOV }}
-      >
-        <FitCamera openness={openness} />
-        <BoxLighting tier={tier} />
-        <Suspense fallback={null}>
-          <Spin active={spinning}>
-            <BoxModel tier={tier} openness={openness} />
-          </Spin>
-        </Suspense>
-      </Canvas>
-    </View>
+    <GestureDetector gesture={drag}>
+      <View style={style}>
+        {/* R3F's canvas claims touches; letting them through keeps parent scrolls, presses and the drag working. */}
+        <View style={fill} pointerEvents="none">
+          <Canvas
+            frameloop={spinning ? 'always' : 'demand'}
+            camera={{ fov: FOV }}
+          >
+            <FitCamera openness={openness} />
+            <BoxLighting tier={tier} />
+            <Suspense fallback={null}>
+              <Spin active={spinning} spin={spin}>
+                <BoxModel tier={tier} openness={openness} />
+              </Spin>
+            </Suspense>
+          </Canvas>
+        </View>
+      </View>
+    </GestureDetector>
   );
 }
+
+const fill = { flex: 1 };
