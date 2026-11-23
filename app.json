@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Mystery Watch",
+    "slug": "mystery-watch",
+    "scheme": "mysterywatch",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/app/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mysterywatch.app"
+    },
+    "android": {
+      "package": "com.mysterywatch.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B1A",
+        "foregroundImage": "./assets/app/android-icon-foreground.png",
+        "backgroundImage": "./assets/app/android-icon-background.png",
+        "monochromeImage": "./assets/app/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/app/favicon.png"
+    },
+    "plugins": ["expo-dev-client"]
+  }
+}
