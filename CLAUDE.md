@@ -135,6 +135,33 @@ reason is non-obvious from the code itself.
    that.
 
 
+## Component Structure Rules
+
+1. **One component per file.** A sub-component in a page's file gets its own file in the
+   slice's `ui/` segment (e.g. `pages/box-details/ui/Odds.tsx`). Each file keeps its own
+   `StyleSheet.create` with only the styles it uses. Copy a tiny shared style instead of
+   creating a shared one.
+
+2. **The page file only composes.** It keeps data queries, the loading, error and empty
+   states, and the layout that wires the pieces together.
+
+3. **Big or complex logic goes into a hook.** State machines, mutations with their
+   error handling, sound or haptic sequencing, and per-frame animation logic go into a
+   `useX` hook instead of the component body. Put it in the slice's `model/` (state and
+   flow, e.g. `model/opening-flow.ts` → `useOpeningFlow`) or `lib/` (helpers, e.g.
+   `lib/inspect-drag.ts` → `useInspectDrag`). The file is named after the domain, in
+   kebab-case. The component keeps only rendering and derived display values.
+
+4. **Constants shared across files go in `config/`.** For example, `entities/box/config/stage.ts`.
+   Constants used by one file stay at the top of that file.
+
+5. **Don't split what is already small.** A single component with no inner
+   sub-components and no complex logic stays in one file. Don't extract one-use
+   pieces just to make files smaller.
+
+6. **Splitting is a move, not a rewrite.** Keep behaviour, names and comments unchanged.
+   Verify on device that the screen renders and behaves as before.
+
 ## Development Commands
 
 ### Package Management
