@@ -36,6 +36,5 @@ const styles = StyleSheet.create((theme) => ({
   amount: {
     fontSize: 16,
     lineHeight: 20,
-    fontVariant: ['tabular-nums'],
   },
 }));

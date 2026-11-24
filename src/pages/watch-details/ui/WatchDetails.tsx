@@ -114,7 +114,7 @@ const styles = StyleSheet.create((theme) => ({
   coins: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.gap(1.5),
+    gap: theme.gap(2),
   },
   actions: {
     gap: theme.gap(2),

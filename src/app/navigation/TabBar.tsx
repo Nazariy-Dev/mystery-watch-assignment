@@ -114,7 +114,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     backgroundColor: theme.colors.background,
   },
   bar: {
-    padding: theme.gap(1.5),
+    padding: theme.gap(2),
     borderRadius: theme.radius.pill,
     borderWidth: 1,
     borderColor: `${theme.colors.primary}40`,

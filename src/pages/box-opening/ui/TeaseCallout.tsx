@@ -63,7 +63,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   name: (rarity: Rarity) => ({
     fontFamily: theme.fonts.display,
-    fontWeight: theme.fontWeight.extraBold,
+    fontWeight: theme.fontWeight.bold,
     fontSize: 34,
     letterSpacing: 2,
     textTransform: 'uppercase',

@@ -50,7 +50,7 @@ const styles = StyleSheet.create((theme) => ({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.gap(1.5),
+    gap: theme.gap(2),
   },
   legendDot: (rarity: Box['tier']) => ({
     width: 8,

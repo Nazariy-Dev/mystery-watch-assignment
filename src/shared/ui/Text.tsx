@@ -16,11 +16,13 @@ export function Text({ variant = 'body', tone, style, ...rest }: TextProps) {
 
 const styles = StyleSheet.create((theme) => ({
   text: {
+    // Fixed-width digits, so prices, stats and counters don't shift as they change.
+    fontVariant: ['tabular-nums'],
     variants: {
       variant: {
         display: {
           fontFamily: theme.fonts.display,
-          fontWeight: theme.fontWeight.extraBold,
+          fontWeight: theme.fontWeight.bold,
           fontSize: 32,
           lineHeight: 38,
         },
@@ -46,8 +48,8 @@ const styles = StyleSheet.create((theme) => ({
         label: {
           fontFamily: theme.fonts.body,
           fontWeight: theme.fontWeight.bold,
-          fontSize: 12,
-          lineHeight: 16,
+          fontSize: 13,
+          lineHeight: 18,
           letterSpacing: 1.2,
           textTransform: 'uppercase',
         },

@@ -62,7 +62,7 @@ const styles = StyleSheet.create((theme) => ({
   }),
   stamp: {
     fontFamily: theme.fonts.display,
-    fontWeight: theme.fontWeight.extraBold,
+    fontWeight: theme.fontWeight.bold,
     fontSize: 20,
     letterSpacing: 4,
     textTransform: 'uppercase',

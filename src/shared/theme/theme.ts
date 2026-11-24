@@ -24,12 +24,10 @@ export const darkTheme = {
     display: 'Unbounded',
     body: 'Manrope',
   },
-  /** Only weights embedded in app.json: Unbounded 700/800, Manrope 500/600/700. */
+  /** Two weights only, for a calm type ramp; app.json embeds Unbounded 700 and Manrope 500/700 for them. */
   fontWeight: {
     medium: '500',
-    semiBold: '600',
     bold: '700',
-    extraBold: '800',
   },
   /** 4pt grid: `gap(4)` → 16. */
   gap: (multiplier: number) => multiplier * 4,
