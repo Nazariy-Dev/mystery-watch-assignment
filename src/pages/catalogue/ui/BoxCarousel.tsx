@@ -1,5 +1,5 @@
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FlatList, useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
@@ -43,24 +43,34 @@ export function BoxCarousel({ boxes, focused, onFocusChange }: BoxCarouselProps)
   // Card a chip-triggered scroll is heading to, or -1. The cards it passes on the way must not report focus:
   // each report re-renders the list, and on Android that cuts the animated scroll short.
   const jumpTarget = useSharedValue(-1);
+  // The card the live canvases cluster around. It follows swipes, but holds still through a chip jump so the box
+  // being left keeps drawing until the target arrives, instead of blinking out the moment the chip is tapped.
+  // The target mounts at the tap so it has loaded by arrival: one GL context over the cap, for the jump only.
+  const [stageCenter, setStageCenter] = useState(focused);
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
       const index = Math.round(event.contentOffset.x / snap);
       if (jumpTarget.value >= 0) {
-        if (index === jumpTarget.value) jumpTarget.value = -1;
+        if (index === jumpTarget.value) {
+          jumpTarget.value = -1;
+          scheduleOnRN(setStageCenter, index);
+        }
         return;
       }
       // Only cross to JS when the focused card changes, not on every scroll frame.
       if (index !== focusedOnUI.value) {
         focusedOnUI.value = index;
         scheduleOnRN(onFocusChange, index);
+        scheduleOnRN(setStageCenter, index);
       }
     },
     // A finger taking over mid-jump hands focus back to the swipe.
     onBeginDrag: () => {
+      if (jumpTarget.value < 0) return;
       jumpTarget.value = -1;
+      scheduleOnRN(setStageCenter, Math.round(scrollX.value / snap));
     },
   });
 
@@ -95,7 +105,7 @@ export function BoxCarousel({ boxes, focused, onFocusChange }: BoxCarouselProps)
             snap={snap}
             width={cardWidth}
             scrollX={scrollX}
-            hasStage={isFocused && Math.abs(index - focused) <= STAGE_RADIUS}
+            hasStage={isFocused && (Math.abs(index - stageCenter) <= STAGE_RADIUS || index === focused)}
             focused={index === focused}
             onPress={() => navigation.navigate('BoxDetails', { boxId: item.id })}
           />
