@@ -1,6 +1,6 @@
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { FlatList, useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -11,6 +11,10 @@ import { BoxCard } from './BoxCard';
 
 type BoxCarouselProps = {
   boxes: Box[];
+  /** Index of the card in focus; changing it from outside scrolls the carousel there. */
+  focused: number;
+  /** Fires whenever a swipe brings another card into focus. */
+  onFocusChange: (index: number) => void;
 };
 
 const CARD_GAP = 16;
@@ -19,10 +23,10 @@ const GLOW_SPACE = 32;
 /** Cards within this distance of the focused one keep a live canvas: at most 3 GL contexts. */
 const STAGE_RADIUS = 1;
 const CARD_WIDTH_SHARE = 0.84;
-/** Card height as a multiple of its width; on short screens the card shrinks to fit instead. */
-const CARD_ASPECT = 1.45;
+/** Card height as a multiple of its width. */
+const CARD_ASPECT = 1.3;
 
-export function BoxCarousel({ boxes }: BoxCarouselProps) {
+export function BoxCarousel({ boxes, focused, onFocusChange }: BoxCarouselProps) {
   const navigation = useNavigation();
   // Covered screens stay mounted; dropping their canvases frees GL contexts for the screen on top.
   const isFocused = useIsFocused();
@@ -31,9 +35,9 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
   const snap = cardWidth + CARD_GAP;
   const sideInset = (screenWidth - cardWidth) / 2;
 
+  const list = useRef<FlatList<Box>>(null);
   const scrollX = useSharedValue(0);
-  const focusedOnUI = useSharedValue(0);
-  const [focused, setFocused] = useState(0);
+  const focusedOnUI = useSharedValue(focused);
 
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollX.value = event.contentOffset.x;
@@ -41,13 +45,19 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
     // Only cross to JS when the focused card changes, not on every scroll frame.
     if (index !== focusedOnUI.value) {
       focusedOnUI.value = index;
-      scheduleOnRN(setFocused, index);
+      scheduleOnRN(onFocusChange, index);
     }
   });
 
+  // A focus change that didn't come from a swipe (a chip tap) scrolls the carousel to that card.
+  useEffect(() => {
+    if (focused !== focusedOnUI.value) list.current?.scrollToOffset({ offset: focused * snap, animated: true });
+  }, [focused, focusedOnUI, snap]);
+
   return (
-    <View style={styles.container}>
+    <View>
       <Animated.FlatList
+        ref={list}
         data={boxes}
         keyExtractor={(box) => box.id}
         horizontal
@@ -57,7 +67,7 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
         onScroll={onScroll}
         scrollEventThrottle={16}
         // iOS blurs shadows wider than Android, past GLOW_SPACE; unclipping lets the glow fade out naturally.
-        style={[styles.list, { maxHeight: cardWidth * CARD_ASPECT + GLOW_SPACE * 2 }]}
+        style={[styles.list, { height: cardWidth * CARD_ASPECT + GLOW_SPACE * 2 }]}
         contentContainerStyle={{ paddingHorizontal: sideInset, paddingVertical: GLOW_SPACE, gap: CARD_GAP }}
         getItemLayout={(_, index) => ({ length: snap, offset: snap * index, index })}
         renderItem={({ item, index }) => (
@@ -83,10 +93,6 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
   list: {
     overflow: 'visible',
   },

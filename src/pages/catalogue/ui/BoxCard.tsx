@@ -122,9 +122,12 @@ const styles = StyleSheet.create((theme) => ({
       },
     },
   },
+  // Inset from the card edges: the camera fits the box to its canvas, so a smaller canvas draws a smaller box.
   stage: {
     flex: 1,
-    minHeight: 220,
+    minHeight: 160,
+    marginVertical: theme.gap(4),
+    marginHorizontal: theme.gap(10),
   },
   info: {
     gap: theme.gap(1),

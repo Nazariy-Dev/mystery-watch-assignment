@@ -46,7 +46,6 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-start',
     gap: theme.gap(3),
     padding: theme.gap(4),
-    marginBottom: theme.gap(2),
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,
     borderWidth: 1,

@@ -1,5 +1,8 @@
-import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { useGetBoxesQuery } from '@/entities/box';
 import { Button, Screen, Text } from '@/shared/ui';
@@ -7,20 +10,35 @@ import { AppHeader } from '@/widgets/app-header';
 
 import { BoxCarousel } from './BoxCarousel';
 import { CatalogueSkeleton } from './CatalogueSkeleton';
+import { PromoBanner } from './PromoBanner';
+import { TierChips } from './TierChips';
 import { WelcomeBanner } from './WelcomeBanner';
 
+const SectionIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.accent }));
+
 export function CataloguePage() {
+  const navigation = useNavigation();
   const { data: boxes, isError, refetch } = useGetBoxesQuery();
+  const [focused, setFocused] = useState(0);
+  const featured = boxes?.reduce((top, box) => (box.price > top.price ? box : top));
 
   return (
     <Screen withBottomInset={false}>
       <AppHeader />
-      <Text variant="title" accessibilityRole="header" style={styles.title}>Pick your box</Text>
-      <WelcomeBanner />
-      {boxes ? (
-        <View style={styles.carousel}>
-          <BoxCarousel boxes={boxes} />
-        </View>
+      {boxes && featured ? (
+        <ScrollView style={styles.feed} contentContainerStyle={styles.feedContent} showsVerticalScrollIndicator={false}>
+          <WelcomeBanner />
+          <PromoBanner box={featured} onPress={() => navigation.navigate('BoxDetails', { boxId: featured.id })} />
+          <TierChips tiers={boxes.map((box) => box.tier)} selected={focused} onSelect={setFocused} />
+          <View style={styles.section}>
+            <SectionIcon name="cube" size={20} />
+            <Text variant="title" accessibilityRole="header" style={styles.sectionTitle}>Pick your box</Text>
+            <Text variant="caption" tone="muted">{boxes.length} boxes</Text>
+          </View>
+          <View style={styles.carousel}>
+            <BoxCarousel boxes={boxes} focused={focused} onFocusChange={setFocused} />
+          </View>
+        </ScrollView>
       ) : isError ? (
         <View style={styles.status}>
           <Text tone="muted">Couldn&apos;t load the boxes.</Text>
@@ -34,15 +52,29 @@ export function CataloguePage() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  title: {
-    marginTop: theme.gap(2),
-    marginBottom: theme.gap(3),
-  },
-  carousel: {
-    flex: 1,
-    // Bleed the carousel to the screen edges so neighbouring cards peek in from both sides.
+  // Bleeds to the screen edges so the carousel's neighbouring cards can peek in; the content re-adds the gutter.
+  feed: {
     marginHorizontal: -theme.gap(4),
-    paddingBottom: theme.gap(2),
+  },
+  feedContent: {
+    paddingHorizontal: theme.gap(4),
+    paddingTop: theme.gap(2),
+    paddingBottom: theme.gap(4),
+    gap: theme.gap(4),
+  },
+  section: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.gap(2),
+    marginTop: theme.gap(2),
+  },
+  sectionTitle: {
+    flex: 1,
+  },
+  // The carousel's own padding leaves room for card glows; pulling it up keeps the card close to its heading.
+  carousel: {
+    marginHorizontal: -theme.gap(4),
+    marginTop: -theme.gap(6),
   },
   status: {
     flex: 1,

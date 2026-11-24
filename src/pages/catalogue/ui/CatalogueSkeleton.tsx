@@ -3,16 +3,18 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { Skeleton } from '@/shared/ui';
 
-/** The focused carousel card and its page dots, while the boxes load. */
+/** The promo banner, rarity chips, section heading and focused carousel card, while the boxes load. */
 export function CatalogueSkeleton() {
   return (
     <View style={styles.container} accessible accessibilityLabel="Loading boxes">
-      <Skeleton style={styles.card} />
-      <View style={styles.dots}>
-        <Skeleton style={styles.dotActive} />
-        <Skeleton style={styles.dot} />
-        <Skeleton style={styles.dot} />
+      <Skeleton style={styles.banner} />
+      <View style={styles.chips}>
+        <Skeleton style={styles.chip} />
+        <Skeleton style={styles.chip} />
+        <Skeleton style={styles.chip} />
       </View>
+      <Skeleton style={styles.heading} />
+      <Skeleton style={styles.card} />
     </View>
   );
 }
@@ -20,29 +22,32 @@ export function CatalogueSkeleton() {
 const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.gap(8),
+    gap: theme.gap(4),
+    paddingTop: theme.gap(2),
   },
-  // Same footprint as a BoxCarousel card, so nothing jumps when the boxes arrive.
-  card: {
-    width: rt.screen.width * 0.84,
-    aspectRatio: 1 / 1.45,
-    maxHeight: '80%',
+  banner: {
+    height: 168,
     borderRadius: theme.radius.lg,
   },
-  dots: {
+  chips: {
     flexDirection: 'row',
     gap: theme.gap(2),
   },
-  dot: {
-    width: 8,
-    height: 8,
+  chip: {
+    width: 96,
+    height: 44,
     borderRadius: theme.radius.pill,
   },
-  dotActive: {
-    width: 24,
-    height: 8,
-    borderRadius: theme.radius.pill,
+  heading: {
+    width: 180,
+    height: 24,
+    marginTop: theme.gap(2),
+  },
+  // Same footprint as a BoxCarousel card, so nothing jumps when the boxes arrive.
+  card: {
+    alignSelf: 'center',
+    width: rt.screen.width * 0.84,
+    aspectRatio: 1 / 1.3,
+    borderRadius: theme.radius.lg,
   },
 }));
