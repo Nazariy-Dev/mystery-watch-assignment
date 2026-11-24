@@ -1,12 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import { useMemo } from 'react';
-import { Alert, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { useGetMeQuery, useResetDemoMutation } from '@/entities/player';
+import { useGetMeQuery } from '@/entities/player';
 import type { Rarity } from '@/shared/api';
 import { Button, Screen, Text } from '@/shared/ui';
 import { AppHeader } from '@/widgets/app-header';
+
+import { useResetDemo } from '../model/reset-demo';
 
 import { CollectionSkeleton } from './CollectionSkeleton';
 import { EmptyVault } from './EmptyVault';
@@ -18,7 +20,7 @@ const RARITY_RANK: Record<Rarity, number> = { legendary: 0, epic: 1, rare: 2, co
 export function CollectionPage() {
   const navigation = useNavigation();
   const { data: me, isError, refetch } = useGetMeQuery();
-  const [resetDemo, { isLoading: resetting }] = useResetDemoMutation();
+  const { confirmReset, resetting } = useResetDemo();
 
   // Rarest first, newest first within a rarity.
   const items = useMemo(
@@ -29,12 +31,6 @@ export function CollectionPage() {
     [me?.inventory],
   );
   const vaultValue = items.reduce((sum, item) => sum + item.watch.value, 0);
-
-  const confirmReset = () =>
-    Alert.alert('Reset demo?', 'Your vault is emptied and your balance goes back to 100,000 coins.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reset', style: 'destructive', onPress: () => resetDemo() },
-    ]);
 
   return (
     <Screen withBottomInset={false}>
