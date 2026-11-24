@@ -4,9 +4,8 @@ import { useMMKVBoolean } from 'react-native-mmkv';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
-import { Text, Touchable } from '@/shared/ui';
+import { SparklesIcon, Text, Touchable } from '@/shared/ui';
 
-const SparkIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.accent }));
 const CloseIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.textMuted }));
 
 /** One-time welcome for a first launch: what the coins are for and how to open a box. Gone for good once dismissed. */
@@ -18,7 +17,7 @@ export function WelcomeBanner() {
   return (
     <Animated.View entering={FadeInDown.delay(300).duration(400)} exiting={FadeOut.duration(200)} style={styles.banner}>
       <View style={styles.iconWell}>
-        <SparkIcon name="sparkles" size={20} />
+        <SparklesIcon size={28} />
       </View>
       <View style={styles.copy}>
         <Text variant="body">Welcome to the vault</Text>

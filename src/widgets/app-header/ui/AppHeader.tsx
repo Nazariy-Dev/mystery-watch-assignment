@@ -34,8 +34,8 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(2),
   },
   mark: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
   },
   wordmark: {
     fontFamily: theme.fonts.display,

@@ -1,11 +1,10 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { useGetBoxesQuery } from '@/entities/box';
-import { Button, Screen, Text } from '@/shared/ui';
+import { Button, Screen, SparklesIcon, Text } from '@/shared/ui';
 import { AppHeader } from '@/widgets/app-header';
 
 import { BoxCarousel } from './BoxCarousel';
@@ -13,8 +12,6 @@ import { CatalogueSkeleton } from './CatalogueSkeleton';
 import { PromoBanner } from './PromoBanner';
 import { TierChips } from './TierChips';
 import { WelcomeBanner } from './WelcomeBanner';
-
-const SectionIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.accent }));
 
 export function CataloguePage() {
   const navigation = useNavigation();
@@ -31,7 +28,7 @@ export function CataloguePage() {
           <PromoBanner box={featured} onPress={() => navigation.navigate('BoxDetails', { boxId: featured.id })} />
           <TierChips tiers={boxes.map((box) => box.tier)} selected={focused} onSelect={setFocused} />
           <View style={styles.section}>
-            <SectionIcon name="cube" size={20} />
+            <SparklesIcon size={28} />
             <Text variant="title" accessibilityRole="header" style={styles.sectionTitle}>Pick your box</Text>
             <Text variant="caption" tone="muted">{boxes.length} boxes</Text>
           </View>

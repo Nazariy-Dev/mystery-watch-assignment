@@ -1,11 +1,10 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { WatchImage } from '@/entities/watch';
 import type { Box } from '@/shared/api';
 import { easedRadialGradient } from '@/shared/lib';
-import { Text, Touchable } from '@/shared/ui';
+import { SparklesIcon, Text, Touchable } from '@/shared/ui';
 
 /** Hero promo for the priciest box, selling its best prize; tapping anywhere opens the box. */
 export function PromoBanner({ box, onPress }: { box: Box; onPress: () => void }) {
@@ -20,7 +19,7 @@ export function PromoBanner({ box, onPress }: { box: Box; onPress: () => void })
     >
       <View style={styles.glow} />
       <WatchImage watch={prize.watch} style={styles.watch} />
-      <Ionicons name="sparkles" size={22} color="#FFFFFF" style={styles.sparkle} />
+      <SparklesIcon size={40} style={styles.sparkle} />
       <View style={styles.copy}>
         <View style={styles.badge}>
           <Text variant="label" style={styles.badgeText}>Hot drop</Text>
@@ -68,8 +67,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   sparkle: {
     position: 'absolute',
-    right: 118,
-    top: 22,
+    right: 112,
+    top: 14,
   },
   copy: {
     flex: 1,

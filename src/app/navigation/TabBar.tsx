@@ -1,7 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useEffect, useState, type ComponentProps } from 'react';
-import { Text, View, type LayoutChangeEvent } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, Text, View, type ImageSourcePropType, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   Easing,
   interpolate,
@@ -11,23 +10,19 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 
 import type { TabParamList } from '@/shared/config';
 import { Touchable } from '@/shared/ui';
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
-type Tab = { label: string; icon: IconName; activeIcon: IconName };
+type Tab = { label: string; icon: ImageSourcePropType };
 
 const TABS: Record<keyof TabParamList, Tab> = {
-  Shop: { label: 'Shop', icon: 'cube-outline', activeIcon: 'cube' },
-  Vault: { label: 'Vault', icon: 'diamond-outline', activeIcon: 'diamond' },
+  Shop: { label: 'Shop', icon: require('../../../assets/icons/tab-shop.png') },
+  Vault: { label: 'Vault', icon: require('../../../assets/icons/tab-vault.png') },
 };
 
 const SLIDE_MS = 280;
-
-const MutedIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.textMuted }));
-const ActiveIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.onPrimary }));
 
 /** Floating pill tab bar; a glowing highlight slides under whichever tab is selected. */
 export function TabBar({ state, navigation }: BottomTabBarProps) {
@@ -95,11 +90,11 @@ function TabItem({ tab, index, focused, position, onPress }: TabItemProps) {
       style={styles.tab}
     >
       <View style={styles.content}>
-        <MutedIcon name={tab.icon} size={22} />
+        <Image source={tab.icon} style={[styles.icon, styles.iconDim]} />
         <Text style={styles.label}>{tab.label}</Text>
       </View>
       <Animated.View style={[styles.content, styles.overlay, activeStyle]}>
-        <ActiveIcon name={tab.activeIcon} size={22} />
+        <Image source={tab.icon} style={styles.icon} />
         <Text style={[styles.label, styles.labelActive]}>{tab.label}</Text>
       </Animated.View>
     </Touchable>
@@ -114,7 +109,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     backgroundColor: theme.colors.background,
   },
   bar: {
-    padding: theme.gap(2),
+    padding: theme.gap(1),
     borderRadius: theme.radius.pill,
     borderWidth: 1,
     borderColor: `${theme.colors.primary}40`,
@@ -147,13 +142,21 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
   tab: {
     flex: 1,
-    height: 56,
+    height: 60,
+  },
+  icon: {
+    width: 26,
+    height: 26,
+  },
+  // The art stays colorful when unselected but recedes, so the selected tab still stands out.
+  iconDim: {
+    opacity: 0.5,
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.gap(1),
+    gap: theme.gap(0.5),
   },
   overlay: {
     position: 'absolute',

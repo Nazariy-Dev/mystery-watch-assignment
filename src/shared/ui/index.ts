@@ -3,5 +3,6 @@ export { CoinIcon } from './CoinIcon';
 export { IconButton } from './IconButton';
 export { Screen } from './Screen';
 export { Skeleton } from './Skeleton';
+export { SparklesIcon } from './SparklesIcon';
 export { Text } from './Text';
 export { Touchable } from './Touchable';
