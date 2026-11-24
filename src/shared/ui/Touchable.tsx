@@ -25,6 +25,8 @@ export function Touchable({ feedback = 'confirm', disabled, onPressIn, onPress, 
 
   return (
     <Pressable
+      // Our own click already sounds; Android's system touch sound would play on top of it.
+      android_disableSound
       {...props}
       accessibilityState={{ ...accessibilityState, disabled: !!disabled }}
       onPressIn={pressIn}

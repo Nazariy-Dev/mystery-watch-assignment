@@ -9,7 +9,8 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.mysterywatch.app"
+      "bundleIdentifier": "com.mysterywatch.app",
+      "appleTeamId": "3GS899Z2FR"
     },
     "android": {
       "package": "com.mysterywatch.app",
@@ -19,7 +20,11 @@
         "backgroundImage": "./assets/app/android-icon-background.png",
         "monochromeImage": "./assets/app/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "favicon": "./assets/app/favicon.png"
@@ -89,14 +94,7 @@
         }
       ],
       "expo-asset",
-      [
-        "expo-audio",
-        {
-          "microphonePermission": false,
-          "recordAudioAndroid": false,
-          "enableBackgroundPlayback": false
-        }
-      ]
+      "react-native-audio-api"
     ],
     "backgroundColor": "#0B0B1A"
   }

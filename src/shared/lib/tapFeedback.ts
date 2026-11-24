@@ -1,5 +1,8 @@
-import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
+import type { AudioBuffer } from 'react-native-audio-api';
+
+import { loadSound, playSound } from './audio';
 
 /** What a tap means; each has its own click and haptic. */
 export type TapFeedback = 'confirm' | 'back' | 'tab' | 'denied';
@@ -13,59 +16,50 @@ const SOUNDS: Record<TapFeedback, number[]> = {
 };
 
 /** Platform guidance: selection ticks for tabs, light impacts for buttons, a warning for a refused tap. */
-const HAPTICS: Record<TapFeedback, () => Promise<void>> = {
+const IOS_HAPTICS: Record<TapFeedback, () => Promise<void>> = {
   confirm: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
   back: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft),
   tab: () => Haptics.selectionAsync(),
   denied: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning),
 };
 
-type Pool = { players: AudioPlayer[]; last: number };
-
 /**
- * One player per pitch variant, so a tap picks a different pitch from the last and repeats don't wear.
- * Several players also mean fast taps find one that has finished: a single player is still playing or parked
- * at its end, and the asynchronous rewind loses the race with `play()`, so nothing sounds.
+ * Android's own touch feedback constants: the system's light key ticks, which follow the user's touch-feedback
+ * setting. The impact and notification calls drive the vibrator directly, a hard buzz on many Android phones.
  */
-let pools: Record<TapFeedback, Pool> | null = null;
+const ANDROID_HAPTICS: Record<TapFeedback, Haptics.AndroidHaptics> = {
+  confirm: Haptics.AndroidHaptics.Virtual_Key,
+  back: Haptics.AndroidHaptics.Keyboard_Tap,
+  tab: Haptics.AndroidHaptics.Clock_Tick,
+  denied: Haptics.AndroidHaptics.Reject,
+};
 
-const createPool = (sources: number[]): Pool => ({
-  players: sources.map((source) => {
-    const player = createAudioPlayer(source);
-    // Rewind as soon as it ends, so the player is ready at the start for its next turn.
-    player.addListener('playbackStatusUpdate', (status) => {
-      if (status.didJustFinish) player.seekTo(0);
-    });
-    return player;
-  }),
-  last: -1,
-});
+// A type the device lacks (`Reject` needs Android 11) rejects; a missing tick isn't worth an error.
+const playHaptic = (kind: TapFeedback) =>
+  (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(ANDROID_HAPTICS[kind]) : IOS_HAPTICS[kind]()).catch(() => {});
 
-const getPools = () =>
-  (pools ??= {
-    confirm: createPool(SOUNDS.confirm),
-    back: createPool(SOUNDS.back),
-    tab: createPool(SOUNDS.tab),
-    denied: createPool(SOUNDS.denied),
-  });
 
-/**
- * Sets the app's audio rules and loads the clicks, so the very first tap is not silent while they load.
- * Call once at startup. Game sounds obey the silent switch and never stop the user's own music.
- */
+/** Decoded clicks per kind, filled at startup; a tap before they are ready just gets its haptic. */
+const clicks: Partial<Record<TapFeedback, AudioBuffer[]>> = {};
+/** Index of the last variant played per kind, so the next tap picks another pitch and repeats don't wear. */
+const lastVariant: Partial<Record<TapFeedback, number>> = {};
+
+/** Decodes the clicks into memory, so the very first tap is not silent while they load. Call once at startup. */
 export function prepareTapFeedback() {
-  setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers', shouldPlayInBackground: false });
-  getPools();
+  (Object.keys(SOUNDS) as TapFeedback[]).forEach((kind) => {
+    Promise.all(SOUNDS[kind].map(loadSound)).then((buffers) => {
+      clicks[kind] = buffers;
+    });
+  });
 }
 
 /** Plays the click and haptic for a tap, picking a pitch variant other than the previous one. */
 export function playTapFeedback(kind: TapFeedback) {
-  HAPTICS[kind]();
-  const pool = getPools()[kind];
-  const offset = 1 + Math.floor(Math.random() * (pool.players.length - 1));
-  pool.last = (Math.max(pool.last, 0) + offset) % pool.players.length;
-  const player = pool.players[pool.last];
-  // Only when taps outpace the pool: restart this player once its rewind has landed.
-  if (player.playing || player.currentTime > 0) player.seekTo(0).then(() => player.play());
-  else player.play();
+  playHaptic(kind);
+  const variants = clicks[kind];
+  if (!variants) return;
+  const offset = 1 + Math.floor(Math.random() * (variants.length - 1));
+  const next = ((lastVariant[kind] ?? 0) + offset) % variants.length;
+  lastVariant[kind] = next;
+  playSound(variants[next]);
 }
