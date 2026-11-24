@@ -18,13 +18,16 @@ const CARD_GAP = 16;
 const GLOW_SPACE = 32;
 /** Cards within this distance of the focused one keep a live canvas: at most 3 GL contexts. */
 const STAGE_RADIUS = 1;
+const CARD_WIDTH_SHARE = 0.84;
+/** Card height as a multiple of its width; on short screens the card shrinks to fit instead. */
+const CARD_ASPECT = 1.45;
 
 export function BoxCarousel({ boxes }: BoxCarouselProps) {
   const navigation = useNavigation();
   // Covered screens stay mounted; dropping their canvases frees GL contexts for the screen on top.
   const isFocused = useIsFocused();
   const { width: screenWidth } = useWindowDimensions();
-  const cardWidth = Math.round(screenWidth * 0.78);
+  const cardWidth = Math.round(screenWidth * CARD_WIDTH_SHARE);
   const snap = cardWidth + CARD_GAP;
   const sideInset = (screenWidth - cardWidth) / 2;
 
@@ -54,7 +57,7 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
         onScroll={onScroll}
         scrollEventThrottle={16}
         // iOS blurs shadows wider than Android, past GLOW_SPACE; unclipping lets the glow fade out naturally.
-        style={styles.list}
+        style={[styles.list, { maxHeight: cardWidth * CARD_ASPECT + GLOW_SPACE * 2 }]}
         contentContainerStyle={{ paddingHorizontal: sideInset, paddingVertical: GLOW_SPACE, gap: CARD_GAP }}
         getItemLayout={(_, index) => ({ length: snap, offset: snap * index, index })}
         renderItem={({ item, index }) => (
@@ -82,6 +85,7 @@ export function BoxCarousel({ boxes }: BoxCarouselProps) {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
+    justifyContent: 'center',
   },
   list: {
     overflow: 'visible',
