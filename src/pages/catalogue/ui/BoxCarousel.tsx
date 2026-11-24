@@ -40,20 +40,37 @@ export function BoxCarousel({ boxes, focused, onFocusChange }: BoxCarouselProps)
   const scrollX = useSharedValue(0);
   const focusedOnUI = useSharedValue(focused);
 
-  const onScroll = useAnimatedScrollHandler((event) => {
-    scrollX.value = event.contentOffset.x;
-    const index = Math.round(event.contentOffset.x / snap);
-    // Only cross to JS when the focused card changes, not on every scroll frame.
-    if (index !== focusedOnUI.value) {
-      focusedOnUI.value = index;
-      scheduleOnRN(onFocusChange, index);
-    }
+  // Card a chip-triggered scroll is heading to, or -1. The cards it passes on the way must not report focus:
+  // each report re-renders the list, and on Android that cuts the animated scroll short.
+  const jumpTarget = useSharedValue(-1);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+      const index = Math.round(event.contentOffset.x / snap);
+      if (jumpTarget.value >= 0) {
+        if (index === jumpTarget.value) jumpTarget.value = -1;
+        return;
+      }
+      // Only cross to JS when the focused card changes, not on every scroll frame.
+      if (index !== focusedOnUI.value) {
+        focusedOnUI.value = index;
+        scheduleOnRN(onFocusChange, index);
+      }
+    },
+    // A finger taking over mid-jump hands focus back to the swipe.
+    onBeginDrag: () => {
+      jumpTarget.value = -1;
+    },
   });
 
   // A focus change that didn't come from a swipe (a chip tap) scrolls the carousel to that card.
   useEffect(() => {
-    if (focused !== focusedOnUI.value) list.current?.scrollToOffset({ offset: focused * snap, animated: true });
-  }, [focused, focusedOnUI, snap]);
+    if (focused === focusedOnUI.value) return;
+    focusedOnUI.value = focused;
+    jumpTarget.value = focused;
+    list.current?.scrollToOffset({ offset: focused * snap, animated: true });
+  }, [focused, focusedOnUI, jumpTarget, snap]);
 
   return (
     <View>
