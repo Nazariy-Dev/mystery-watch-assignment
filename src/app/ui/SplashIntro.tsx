@@ -72,6 +72,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background,
+    elevation: 10,
   },
   halo: {
     position: 'absolute',
