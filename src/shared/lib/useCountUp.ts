@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { Easing } from 'react-native-reanimated';
 
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+const easeOutCubic = Easing.out(Easing.cubic);
 
 /** Returns `target`, animating from the previous target over `durationMs`; the first value shows instantly. */
 export function useCountUp(target: number, durationMs = 700) {

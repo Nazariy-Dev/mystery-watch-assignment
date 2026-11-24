@@ -1,3 +1,5 @@
+import { MathUtils } from 'three';
+
 const AUTO_SPIN = 0.6;
 const RADIANS_PER_PX = 0.012;
 const FLING_DECAY = 3;
@@ -37,7 +39,7 @@ export class SpinController {
     if (parkYaw !== undefined) {
       const target = parkYaw + Math.round((this.yaw - parkYaw) / TURN) * TURN;
       this.velocity = 0;
-      this.yaw += (target - this.yaw) * (1 - Math.exp(-PARK_RATE * delta));
+      this.yaw = MathUtils.damp(this.yaw, target, PARK_RATE, delta);
       return this.yaw;
     }
     this.velocity *= Math.exp(-FLING_DECAY * delta);

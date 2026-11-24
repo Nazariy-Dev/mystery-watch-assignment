@@ -1,3 +1,5 @@
+import { MathUtils } from 'three';
+
 // Under-damped (ζ ≈ 0.58): the lid overshoots a little and settles, like a sprung hinge.
 const LID_STIFFNESS = 60;
 const LID_DAMPING = 9;
@@ -5,8 +7,6 @@ const SHAKE_RAMP_UP = 1.2;
 const SHAKE_RAMP_DOWN = 8;
 /** Longer frames are split so a dropped frame can't make the spring explode. */
 const MAX_STEP = 1 / 60;
-
-const approach = (from: number, to: number, rate: number, dt: number) => from + (to - from) * (1 - Math.exp(-rate * dt));
 
 /** Lid openness (0 closed, 1 open, briefly above 1 on overshoot) and charge-up shake of a box, advanced per frame. */
 export class BoxMotion {
@@ -22,7 +22,7 @@ export class BoxMotion {
       const accel = LID_STIFFNESS * ((open ? 1 : 0) - this.openness) - LID_DAMPING * this.velocity;
       this.velocity += accel * dt;
       this.openness += this.velocity * dt;
-      this.shake = approach(this.shake, charging ? 1 : 0, charging ? SHAKE_RAMP_UP : SHAKE_RAMP_DOWN, dt);
+      this.shake = MathUtils.damp(this.shake, charging ? 1 : 0, charging ? SHAKE_RAMP_UP : SHAKE_RAMP_DOWN, dt);
       this.time += dt;
     }
   }
