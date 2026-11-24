@@ -8,6 +8,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import type { Box } from '@/shared/api';
 
 import { BoxCard } from './BoxCard';
+import { CarouselDot } from './CarouselDot';
 
 type BoxCarouselProps = {
   boxes: Box[];
@@ -85,7 +86,7 @@ export function BoxCarousel({ boxes, focused, onFocusChange }: BoxCarouselProps)
       />
       <View style={styles.dots}>
         {boxes.map((box, index) => (
-          <View key={box.id} style={[styles.dot, index === focused && styles.dotActive]} />
+          <CarouselDot key={box.id} index={index} snap={snap} scrollX={scrollX} />
         ))}
       </View>
     </View>
@@ -100,15 +101,5 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: theme.gap(2),
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.border,
-  },
-  dotActive: {
-    width: 24,
-    backgroundColor: theme.colors.primary,
   },
 }));
