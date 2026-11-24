@@ -45,7 +45,10 @@ export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
             )}
             <Text variant="caption" tone="muted" style={styles.hint}>Drag to spin</Text>
             <View style={styles.titleBlock}>
-              <Text variant="label" style={styles.rarityText(box.tier)}>{box.tier} box</Text>
+              <View style={styles.rarityChip(box.tier)}>
+                <View style={styles.rarityDot(box.tier)} />
+                <Text variant="label" style={styles.rarityText(box.tier)}>{box.tier} box</Text>
+              </View>
               <Text variant="display" accessibilityRole="header">{box.name}</Text>
               <Text tone="muted">{box.tagline}</Text>
             </View>
@@ -89,8 +92,26 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: -theme.gap(6),
   },
   titleBlock: {
-    gap: theme.gap(1),
+    alignItems: 'flex-start',
+    gap: theme.gap(2),
   },
+  rarityChip: (rarity: Box['tier']) => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.gap(2),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(1),
+    borderRadius: theme.radius.pill,
+    backgroundColor: `${theme.rarity[rarity]}1F`,
+    borderWidth: 1,
+    borderColor: `${theme.rarity[rarity]}55`,
+  }),
+  rarityDot: (rarity: Box['tier']) => ({
+    width: 8,
+    height: 8,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.rarity[rarity],
+  }),
   rarityText: (rarity: Box['tier']) => ({
     color: theme.rarity[rarity],
   }),
