@@ -15,20 +15,28 @@ type BoxModelProps = {
   tier: Rarity;
   motion: BoxMotion;
   seam: SeamGlow;
+  /** Fires once, right after the first frame with the model has been drawn. */
+  onReady?: () => void;
 };
 
 /** The supplied box, tier-colored, with its base on y = 0; the lid follows `motion` and the seam is painted from `seam`. Render inside a Canvas under Suspense. */
-export function BoxModel({ tier, motion, seam }: BoxModelProps) {
+export function BoxModel({ tier, motion, seam, onReady }: BoxModelProps) {
   // R3F's native loaders resolve Metro asset ids at runtime, but its types only accept URLs.
   const gltf = useLoader(GLTFLoader, boxModelAsset as unknown as string);
   const box = useMemo(() => createBoxInstance(gltf.scene, tier), [gltf.scene, tier]);
   const hinge = useRef<Group>(null);
+  const drawn = useRef(false);
 
   useEffect(() => () => box.materials.forEach((material) => material.dispose()), [box]);
 
   useFrame(() => {
     if (hinge.current) hinge.current.rotation.x = (motion.openness + motion.rattle) * LID_OPEN_ANGLE;
     if (box.seam) seam.paint(box.seam);
+    // Frame callbacks run before the render, so defer past it to fire once the frame is on screen.
+    if (!drawn.current && onReady) {
+      drawn.current = true;
+      setTimeout(onReady, 0);
+    }
   });
 
   return (

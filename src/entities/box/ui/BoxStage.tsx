@@ -2,18 +2,20 @@ import { Canvas } from '@react-three/fiber/native';
 import { Suspense, type Ref } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { useReducedMotion } from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 
 import type { Rarity } from '@/shared/api';
 
 import { FOV } from '../config/stage';
 import { useInspectDrag } from '../lib/inspect-drag';
 import { useStageControllers, type BoxStageHandle } from '../lib/stage-controllers';
+import { useStageReveal } from '../lib/stage-reveal';
 import type { RevealBeat } from '../model/reveal';
 import { BoxLighting } from './BoxLighting';
 import { BoxModel } from './BoxModel';
 import { FitCamera } from './FitCamera';
 import { Rig } from './Rig';
+import { StageLoading } from './StageLoading';
 
 type BoxStageProps = {
   ref?: Ref<BoxStageHandle>;
@@ -58,6 +60,8 @@ export function BoxStage({
   const reduceMotion = useReducedMotion();
   const { spin, motion, timeline, arrival, seam } = useStageControllers({ ref, tier, result, entrance, reduceMotion });
   const drag = useInspectDrag(spin, inspectable);
+  // The first frame takes up to a second to compile; the canvas stays hidden behind a placeholder until it is drawn.
+  const { shown, breath, flash, onReady, canvasStyle } = useStageReveal(reduceMotion);
 
   return (
     <GestureDetector gesture={drag}>
@@ -67,8 +71,9 @@ export function BoxStage({
         accessibilityRole={accessibilityLabel ? 'image' : undefined}
         accessibilityLabel={accessibilityLabel}
       >
+        <StageLoading tier={tier} shown={shown} breath={breath} flash={flash} />
         {/* R3F's canvas claims touches; letting them through keeps parent scrolls, presses and the drag working. */}
-        <View style={fill} pointerEvents="none">
+        <Animated.View style={[fill, canvasStyle]} pointerEvents="none">
           <Canvas frameloop={spinning ? 'always' : 'demand'} camera={{ fov: FOV }}>
             <FitCamera motion={motion} entrance={arrival} timeline={timeline} reduceMotion={reduceMotion} />
             <BoxLighting tier={tier} />
@@ -86,11 +91,11 @@ export function BoxStage({
                 reduceMotion={reduceMotion}
                 onBeat={onBeat}
               >
-                <BoxModel tier={tier} motion={motion} seam={seam} />
+                <BoxModel tier={tier} motion={motion} seam={seam} onReady={onReady} />
               </Rig>
             </Suspense>
           </Canvas>
-        </View>
+        </Animated.View>
       </View>
     </GestureDetector>
   );
