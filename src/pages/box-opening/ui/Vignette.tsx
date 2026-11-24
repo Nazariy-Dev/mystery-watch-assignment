@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { easedRadialGradient } from '../lib/eased-gradient';
+import { easedRadialGradient } from '@/shared/lib';
 
 /** Clear center easing out to dark edges; the eased stops keep the falloff smooth and free of banding. */
 const VIGNETTE = easedRadialGradient({

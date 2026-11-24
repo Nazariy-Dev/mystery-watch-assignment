@@ -6,7 +6,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { WatchImage } from '@/entities/watch';
 import type { Rarity, Watch } from '@/shared/api';
 
-import { easedRadialGradient } from '../lib/eased-gradient';
+import { easedRadialGradient } from '@/shared/lib';
 
 /** The won watch zooming in over a slowly breathing halo in its rarity color. */
 export function RevealShowcase({ watch }: { watch: Watch }) {
