@@ -41,7 +41,8 @@ export function WatchDetails({ item, onSold }: { item: OwnedItem; onSold: () => 
   return (
     <>
       <View style={styles.showcase}>
-        <View style={styles.halo(watch.rarity)} />
+        {/* Wider than the showcase, so it spreads over the back button; touches must pass through it. */}
+        <View pointerEvents="none" style={styles.halo(watch.rarity)} />
         <WatchImage watch={watch} style={styles.watch} />
       </View>
       <View style={styles.titleBlock}>
