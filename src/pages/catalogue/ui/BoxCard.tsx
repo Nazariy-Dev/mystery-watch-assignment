@@ -74,8 +74,8 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1.5,
     padding: theme.gap(4),
     shadowOpacity: 0.45,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 8,
     variants: {
       tier: {

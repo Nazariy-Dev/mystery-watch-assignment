@@ -119,11 +119,11 @@ const styles = StyleSheet.create((theme, rt) => ({
     borderWidth: 1,
     borderColor: `${theme.colors.primary}40`,
     backgroundColor: theme.colors.surface,
-    // Centered (slightly raised) and widely blurred, so the glow spreads to the sides instead of pooling below.
+    // Centered, so the glow hugs every edge evenly instead of pooling below.
     shadowColor: theme.colors.primary,
     shadowOpacity: 0.22,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: -2 },
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
     // Android elevation always casts downward; keep it low so the bar barely shadows its bottom there.
     elevation: 4,
   },
