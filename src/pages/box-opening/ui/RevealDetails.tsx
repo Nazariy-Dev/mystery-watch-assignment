@@ -39,7 +39,10 @@ export function RevealDetails({ watch }: { watch: Watch }) {
           {watch.rarity}
         </Animated.Text>
       ) : (
-        <Text variant="label" style={styles.rarity(watch.rarity)}>{watch.rarity}</Text>
+        <View style={styles.rarityChip(watch.rarity)}>
+          <View style={styles.rarityDot(watch.rarity)} />
+          <Text variant="label" style={styles.rarity(watch.rarity)}>{watch.rarity}</Text>
+        </View>
       )}
       <Text variant="display" style={styles.center}>{watch.name}</Text>
       <Text tone="muted">{watch.brand}</Text>
@@ -57,6 +60,24 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(1),
     marginBottom: theme.gap(6),
   },
+  rarityChip: (rarity: Rarity) => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.gap(2),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(1),
+    marginBottom: theme.gap(1),
+    borderRadius: theme.radius.pill,
+    backgroundColor: `${theme.rarity[rarity]}1F`,
+    borderWidth: 1,
+    borderColor: `${theme.rarity[rarity]}55`,
+  }),
+  rarityDot: (rarity: Rarity) => ({
+    width: 8,
+    height: 8,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.rarity[rarity],
+  }),
   rarity: (rarity: Rarity) => ({
     color: theme.rarity[rarity],
   }),
@@ -83,6 +104,12 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.gap(2),
-    marginTop: theme.gap(2),
+    marginTop: theme.gap(3),
+    paddingHorizontal: theme.gap(4),
+    paddingVertical: theme.gap(2),
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: `${theme.colors.coin}40`,
   },
 }));
