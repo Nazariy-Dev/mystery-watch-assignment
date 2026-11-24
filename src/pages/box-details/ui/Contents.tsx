@@ -48,7 +48,7 @@ const styles = StyleSheet.create((theme, rt) => ({
   watchCard: (rarity: Box['tier']) => ({
     // Two per row: half the width minus half the gap.
     flexBasis: (rt.screen.width - theme.gap(8) - theme.gap(3)) / 2,
-    padding: theme.gap(3),
+    padding: theme.gap(4),
     gap: theme.gap(1),
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,

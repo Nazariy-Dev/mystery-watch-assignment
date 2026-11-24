@@ -19,7 +19,7 @@ const styles = StyleSheet.create((theme) => ({
   stat: {
     flex: 1,
     gap: theme.gap(1),
-    padding: theme.gap(4),
+    padding: theme.gap(5),
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,
     borderWidth: 1,

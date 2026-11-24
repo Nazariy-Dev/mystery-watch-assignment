@@ -36,7 +36,7 @@ const styles = StyleSheet.create((theme, rt) => ({
   card: (rarity: Rarity) => ({
     // Fixed half width, not flex: 1, so an odd last card doesn't stretch across the row.
     width: (rt.screen.width - theme.gap(8) - theme.gap(3)) / 2,
-    padding: theme.gap(3),
+    padding: theme.gap(4),
     gap: theme.gap(1),
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,

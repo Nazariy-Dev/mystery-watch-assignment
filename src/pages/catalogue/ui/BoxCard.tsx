@@ -72,7 +72,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.surface,
     borderWidth: 1.5,
-    padding: theme.gap(4),
+    padding: theme.gap(6),
     shadowOpacity: 0.45,
     shadowRadius: 9,
     shadowOffset: { width: 0, height: 3 },
