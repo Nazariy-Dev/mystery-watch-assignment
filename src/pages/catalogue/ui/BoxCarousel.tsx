@@ -91,6 +91,8 @@ export function BoxCarousel({ boxes, focused, onFocusChange }: BoxCarouselProps)
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={snap}
+        // A hard fling still moves one box, so none is skipped past unseen.
+        disableIntervalMomentum
         decelerationRate="fast"
         onScroll={onScroll}
         scrollEventThrottle={16}
