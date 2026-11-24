@@ -94,7 +94,15 @@
         }
       ],
       "expo-asset",
-      "react-native-audio-api"
+      "react-native-audio-api",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "-keep class expo.modules.gl.** { *; }"
+          }
+        }
+      ]
     ],
     "backgroundColor": "#0B0B1A"
   }
