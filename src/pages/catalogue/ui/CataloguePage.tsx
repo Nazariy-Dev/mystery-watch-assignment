@@ -7,6 +7,7 @@ import { Button, Screen, Text } from '@/shared/ui';
 
 import { BoxCarousel } from './BoxCarousel';
 import { CatalogueSkeleton } from './CatalogueSkeleton';
+import { WelcomeBanner } from './WelcomeBanner';
 
 export function CataloguePage() {
   const { data: boxes, isError, refetch } = useGetBoxesQuery();
@@ -20,6 +21,7 @@ export function CataloguePage() {
         </View>
         <CoinBalance />
       </View>
+      <WelcomeBanner />
       {boxes ? (
         <View style={styles.carousel}>
           <BoxCarousel boxes={boxes} />
