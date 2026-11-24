@@ -46,9 +46,8 @@ export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, o
   }, [bob, reduceMotion]);
 
   // -1 when the card sits one step to the left of focus, 0 in focus, 1 one step to the right.
-  const offset = useDerivedValue(
-    () => interpolate(scrollX.value, [(index - 1) * snap, index * snap, (index + 1) * snap], [1, 0, -1], 'clamp'),
-    [index, snap],
+  const offset = useDerivedValue(() =>
+    interpolate(scrollX.value, [(index - 1) * snap, index * snap, (index + 1) * snap], [1, 0, -1], 'clamp'),
   );
 
   const floatStyle = useAnimatedStyle(() => ({
