@@ -7,6 +7,7 @@ import { useGetBoxesQuery } from '@/entities/box';
 import { useSellItemMutation } from '@/entities/player';
 import { WatchImage } from '@/entities/watch';
 import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
+import { easedRadialGradient } from '@/shared/lib';
 import { Button, CoinIcon, Text } from '@/shared/ui';
 
 import { Fact } from './Fact';
@@ -44,7 +45,10 @@ export function WatchDetails({ item, onSold }: { item: OwnedItem; onSold: () => 
         <WatchImage watch={watch} style={styles.watch} />
       </View>
       <View style={styles.titleBlock}>
-        <Text variant="label" style={styles.rarity(watch.rarity)}>{watch.rarity}</Text>
+        <View style={styles.rarityChip(watch.rarity)}>
+          <View style={styles.rarityDot(watch.rarity)} />
+          <Text variant="label" style={styles.rarity(watch.rarity)}>{watch.rarity}</Text>
+        </View>
         <Text variant="display" accessibilityRole="header" style={styles.center}>{watch.name}</Text>
         <Text tone="muted">{watch.brand}</Text>
       </View>
@@ -52,7 +56,7 @@ export function WatchDetails({ item, onSold }: { item: OwnedItem; onSold: () => 
         <Fact label="Sell value">
           <View style={styles.coins}>
             <CoinIcon size={16} />
-            <Text tone="coin">{value}</Text>
+            <Text tone="coin" style={styles.coinText}>{value}</Text>
           </View>
         </Fact>
         {boxName && (
@@ -78,16 +82,17 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Same edgeless eased glow as the reveal, so a watch looks lit the same way it did when it was won.
   halo: (rarity: Rarity) => ({
     position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: `${theme.rarity[rarity]}26`,
-    shadowColor: theme.rarity[rarity],
-    shadowOpacity: 0.8,
-    shadowRadius: 50,
-    shadowOffset: { width: 0, height: 0 },
+    width: 440,
+    height: 440,
+    backgroundImage: easedRadialGradient({
+      from: `${theme.rarity[rarity]}80`,
+      to: `${theme.rarity[rarity]}00`,
+      end: 0.7,
+      shape: 'circle',
+    }),
   }),
   watch: {
     height: 280,
@@ -97,6 +102,24 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.gap(1),
     marginBottom: theme.gap(5),
   },
+  rarityChip: (rarity: Rarity) => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.gap(2),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(1),
+    marginBottom: theme.gap(1),
+    borderRadius: theme.radius.pill,
+    backgroundColor: `${theme.rarity[rarity]}1F`,
+    borderWidth: 1,
+    borderColor: `${theme.rarity[rarity]}55`,
+  }),
+  rarityDot: (rarity: Rarity) => ({
+    width: 8,
+    height: 8,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.rarity[rarity],
+  }),
   rarity: (rarity: Rarity) => ({
     color: theme.rarity[rarity],
   }),
@@ -104,17 +127,21 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: 'center',
   },
   facts: {
-    paddingHorizontal: theme.gap(4),
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.gap(5),
+    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: `${theme.colors.primary}55`,
+    backgroundImage: `linear-gradient(135deg, ${theme.colors.primary}40 0%, ${theme.colors.surface} 75%)`,
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
     marginBottom: theme.gap(4),
   },
   coins: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.gap(2),
+  },
+  coinText: {
+    fontWeight: theme.fontWeight.bold,
   },
   actions: {
     gap: theme.gap(2),
