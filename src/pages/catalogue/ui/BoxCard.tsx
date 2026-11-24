@@ -1,10 +1,21 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { interpolate, useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useDerivedValue,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { BoxStage } from '@/entities/box';
-import type { Box } from '@/shared/api';
+import type { Box, Rarity } from '@/shared/api';
+import { easedRadialGradient } from '@/shared/lib';
 import { CoinIcon, Text, Touchable } from '@/shared/ui';
 
 type BoxCardProps = {
@@ -21,122 +32,143 @@ type BoxCardProps = {
 };
 
 const SCROLL_PRESS_DELAY_MS = 100;
-const ThemedIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.textMuted }));
+const BOB_MS = 2400;
+const BOB_HEIGHT = 8;
 
+/** A box floating in open space with its rarity, name and price; it tilts and sinks away as the carousel moves on. */
 export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, onPress }: BoxCardProps) {
-  const variantStyles = styles.useVariants({ tier: box.tier });
+  const reduceMotion = useReducedMotion();
+  const bob = useSharedValue(0);
 
-  const range = [(index - 1) * snap, index * snap, (index + 1) * snap];
-  const scaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(scrollX.value, range, [0.9, 1, 0.9], 'clamp') }],
+  useEffect(() => {
+    if (reduceMotion) return;
+    bob.value = withRepeat(withTiming(1, { duration: BOB_MS, easing: Easing.inOut(Easing.sin) }), -1, true);
+  }, [bob, reduceMotion]);
+
+  // -1 when the card sits one step to the left of focus, 0 in focus, 1 one step to the right.
+  const offset = useDerivedValue(
+    () => interpolate(scrollX.value, [(index - 1) * snap, index * snap, (index + 1) * snap], [1, 0, -1], 'clamp'),
+    [index, snap],
+  );
+
+  const floatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -bob.value * BOB_HEIGHT }],
   }));
-  // Side cards fade via an overlay, not opacity: a translucent view on Android shows its own elevation shadow through itself.
-  const dimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollX.value, range, [0.5, 0, 0.5], 'clamp'),
-  }));
+
+  const stageStyle = useAnimatedStyle(() => {
+    const o = offset.value;
+    const away = Math.abs(o);
+    return {
+      opacity: 1 - away * 0.6,
+      transform: [
+        { perspective: 800 },
+        { translateY: away * 40 },
+        { rotateY: `${o * -35}deg` },
+        { scale: 1 - away * 0.3 },
+      ],
+    };
+  });
+
+  // The text leads the box out and trails it in, so the two layers separate mid-swipe.
+  const infoStyle = useAnimatedStyle(() => {
+    const o = offset.value;
+    return {
+      opacity: interpolate(Math.abs(o), [0, 0.5], [1, 0], 'clamp'),
+      transform: [{ translateX: o * 60 }],
+    };
+  });
 
   return (
-    <Animated.View style={[{ width }, scaleStyle]}>
+    <Animated.View style={[styles.card, { width }, floatStyle]}>
       <Touchable
         accessibilityRole="button"
         accessibilityLabel={`${box.name}, ${box.tier}, ${box.price} coins`}
         // A swipe through the carousel starts on a card; the delay keeps it from clicking.
         unstable_pressDelay={SCROLL_PRESS_DELAY_MS}
         onPress={onPress}
-        style={({ pressed }) => [variantStyles.card, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.touch, pressed && styles.pressed]}
       >
-        <View style={variantStyles.chip}>
-          <Text variant="label" style={variantStyles.chipLabel}>{box.tier}</Text>
-        </View>
-        {hasStage ? <BoxStage tier={box.tier} spinning={focused} style={styles.stage} /> : <View style={styles.stage} />}
-        <View style={styles.info}>
-          <Text variant="title">{box.name}</Text>
-          <Text variant="caption" tone="muted" numberOfLines={1}>{box.tagline}</Text>
-          <View style={styles.footer}>
-            <View style={styles.price}>
-              <CoinIcon size={20} />
-              <Text variant="title" tone="coin">{box.price.toLocaleString('en-US')}</Text>
-            </View>
-            <ThemedIcon name="arrow-forward-circle" size={28} />
+        <Animated.View style={[styles.space, stageStyle]}>
+          <View pointerEvents="none" style={styles.glow(box.tier)} />
+          {hasStage ? <BoxStage tier={box.tier} spinning={focused} style={styles.stage} /> : <View style={styles.stage} />}
+        </Animated.View>
+        <Animated.View style={[styles.info, infoStyle]}>
+          <View style={styles.rarityChip(box.tier)}>
+            <View style={styles.rarityDot(box.tier)} />
+            <Text variant="label" style={styles.rarityText(box.tier)}>{box.tier}</Text>
           </View>
-        </View>
+          <Text variant="title" style={styles.name}>{box.name}</Text>
+          <View style={styles.price}>
+            <CoinIcon size={20} />
+            <Text variant="title" tone="coin">{box.price.toLocaleString('en-US')}</Text>
+          </View>
+        </Animated.View>
       </Touchable>
-      <Animated.View style={[styles.dim, dimStyle]} pointerEvents="none" />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
   card: {
+    height: '100%',
+  },
+  touch: {
     flex: 1,
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1.5,
-    padding: theme.gap(6),
-    shadowOpacity: 0.45,
-    shadowRadius: 9,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 8,
-    variants: {
-      tier: {
-        common: { borderColor: `${theme.rarity.common}55`, shadowColor: theme.rarity.common },
-        rare: { borderColor: `${theme.rarity.rare}66`, shadowColor: theme.rarity.rare },
-        epic: { borderColor: `${theme.rarity.epic}66`, shadowColor: theme.rarity.epic },
-        legendary: { borderColor: `${theme.rarity.legendary}77`, shadowColor: theme.rarity.legendary },
-      },
-    },
   },
   pressed: {
-    transform: [{ scale: 0.98 }],
+    transform: [{ scale: 0.97 }],
   },
-  dim: {
+  space: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // A pool of the tier's light the box hovers in; edgeless, so nothing reads as a card boundary.
+  glow: (tier: Rarity) => ({
     position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.background,
-  },
-  chip: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: theme.gap(3),
-    paddingVertical: theme.gap(1),
-    borderRadius: theme.radius.pill,
-    variants: {
-      tier: {
-        common: { backgroundColor: `${theme.rarity.common}22` },
-        rare: { backgroundColor: `${theme.rarity.rare}22` },
-        epic: { backgroundColor: `${theme.rarity.epic}22` },
-        legendary: { backgroundColor: `${theme.rarity.legendary}22` },
-      },
-    },
-  },
-  chipLabel: {
-    variants: {
-      tier: {
-        common: { color: theme.rarity.common },
-        rare: { color: theme.rarity.rare },
-        epic: { color: theme.rarity.epic },
-        legendary: { color: theme.rarity.legendary },
-      },
-    },
-  },
-  // Inset from the card edges: the camera fits the box to its canvas, so a smaller canvas draws a smaller box.
+    width: '120%',
+    aspectRatio: 1,
+    backgroundImage: easedRadialGradient({
+      from: `${theme.rarity[tier]}38`,
+      to: `${theme.rarity[tier]}00`,
+      end: 0.7,
+      shape: 'circle',
+    }),
+  }),
+  // Inset from the sides: the camera fits the box to its canvas, so a narrower canvas draws a smaller box.
   stage: {
+    alignSelf: 'stretch',
     flex: 1,
     minHeight: 160,
-    marginVertical: theme.gap(4),
     marginHorizontal: theme.gap(10),
   },
   info: {
-    gap: theme.gap(1),
+    alignItems: 'center',
+    gap: theme.gap(2),
+    paddingBottom: theme.gap(2),
   },
-  footer: {
-    marginTop: theme.gap(2),
+  rarityChip: (tier: Rarity) => ({
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: theme.gap(2),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(1),
+    borderRadius: theme.radius.pill,
+    backgroundColor: `${theme.rarity[tier]}1F`,
+    borderWidth: 1,
+    borderColor: `${theme.rarity[tier]}55`,
+  }),
+  rarityDot: (tier: Rarity) => ({
+    width: 8,
+    height: 8,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.rarity[tier],
+  }),
+  rarityText: (tier: Rarity) => ({
+    color: theme.rarity[tier],
+  }),
+  name: {
+    textAlign: 'center',
   },
   price: {
     flexDirection: 'row',
