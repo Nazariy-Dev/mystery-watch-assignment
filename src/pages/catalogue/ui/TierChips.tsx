@@ -4,6 +4,8 @@ import { StyleSheet } from 'react-native-unistyles';
 import type { Rarity } from '@/shared/api';
 import { Text, Touchable } from '@/shared/ui';
 
+import { useFollowSelection } from '../lib/follow-selection';
+
 type TierChipsProps = {
   /** One chip per box, in carousel order. */
   tiers: Rarity[];
@@ -13,8 +15,19 @@ type TierChipsProps = {
 
 /** Rarity shortcuts above the carousel: tapping one jumps to that box, and the highlight follows swipes. */
 export function TierChips({ tiers, selected, onSelect }: TierChipsProps) {
+  // Swipes move the selection; the row follows so the selected chip stays in view.
+  const { scroller, onLayout, onContentSizeChange, onItemLayout } = useFollowSelection(selected);
+
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroller} contentContainerStyle={styles.row}>
+    <ScrollView
+      ref={scroller}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      onLayout={onLayout}
+      onContentSizeChange={onContentSizeChange}
+      style={styles.scroller}
+      contentContainerStyle={styles.row}
+    >
       {tiers.map((tier, index) => {
         const active = index === selected;
         return (
@@ -25,6 +38,7 @@ export function TierChips({ tiers, selected, onSelect }: TierChipsProps) {
             accessibilityLabel={`${tier} box`}
             feedback="tab"
             onPress={() => onSelect(index)}
+            onLayout={onItemLayout(index)}
             style={[styles.chip, active && styles.chipActive]}
           >
             <View style={styles.dot(tier)} />
