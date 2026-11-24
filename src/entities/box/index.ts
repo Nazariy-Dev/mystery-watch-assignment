@@ -1,3 +1,4 @@
 export { useGetBoxesQuery, useGetBoxQuery } from './api/boxApi';
+export type { BoxStageHandle } from './lib/stage-controllers';
 export type { RevealBeat } from './model/reveal';
-export { BoxStage, type BoxStageHandle } from './ui/BoxStage';
+export { BoxStage } from './ui/BoxStage';
