@@ -1,4 +1,4 @@
-"""Synthesizes the box-opening sound effects as 16-bit mono WAVs. Pure Python: math, random, wave.
+"""Synthesizes the app's sound effects and background music as 16-bit mono WAVs. Pure Python: math, random, wave.
 
 Usage: python3 scripts/synthesize-sounds.py src
 """
@@ -106,15 +106,19 @@ def reverb(samples, wet=0.22, tail=0.6):
     return lowpass([o * (1 - wet) + w * wet for o, w in zip(out, wet_sum)], 9000)
 
 
-def write(name, samples, peak=0.85, folder='pages/box-opening/sounds'):
-    fade = int(0.02 * SR)
-    for i in range(min(fade, len(samples))):
-        samples[-1 - i] *= i / fade
+def write(name, samples, peak=0.85, folder='pages/box-opening/sounds', loop=False, rate=SR):
+    """`loop` skips the closing fade, which would click at the seam; a lower `rate` halves a long file's size."""
+    if not loop:
+        fade = int(0.02 * SR)
+        for i in range(min(fade, len(samples))):
+            samples[-1 - i] *= i / fade
+    if rate != SR:
+        samples = lowpass(samples, rate * 0.4)[:: SR // rate]
     top = max(abs(s) for s in samples) or 1
     with wave.open(f'{OUT}/{folder}/{name}.wav', 'wb') as f:
         f.setnchannels(1)
         f.setsampwidth(2)
-        f.setframerate(SR)
+        f.setframerate(rate)
         f.writeframes(b''.join(struct.pack('<h', int(s / top * peak * 32767)) for s in samples))
 
 
@@ -253,5 +257,27 @@ for kind, make in UI_CLICKS.items():
     for variant, pitch in enumerate((0.97, 1.0, 1.03), start=1):
         samples, peak = make(pitch)
         write(f'{kind}-{variant}', samples, peak=peak, folder='shared/lib/sounds')
+
+# Background music: a slow, airy minor progression with sparse chimes, 32 s that loop without a seam.
+# Everything that rings past the end (the last chord, chime tails, reverb) is folded back onto the start.
+BAR_SECONDS = 8
+CHORDS = [
+    (110.0, 164.81, 196.0, 246.94, 261.63),  # Am9
+    (87.31, 130.81, 164.81, 220.0),  # Fmaj7
+    (130.81, 196.0, 246.94, 329.63),  # Cmaj7
+    (82.41, 123.47, 146.83, 196.0),  # Em7
+]
+CHIMES = [440.0, 523.25, 659.25, 783.99, 880.0]
+loop_length = BAR_SECONDS * len(CHORDS) * SR
+music = silence(BAR_SECONDS * len(CHORDS))
+for bar, chord in enumerate(CHORDS):
+    mix(music, pad(chord, BAR_SECONDS + 3, attack=2.5, release=3.5), bar * BAR_SECONDS, 1.0)
+    for _ in range(3):
+        at = bar * BAR_SECONDS + random.uniform(0.5, BAR_SECONDS - 0.5)
+        mix(music, glock(random.choice(CHIMES), 2.5, decay=1.6, bright=0.4), at, random.uniform(0.05, 0.1))
+music = reverb(music, wet=0.35, tail=1.5)
+for i in range(loop_length, len(music)):
+    music[i - loop_length] += music[i]
+write('music', music[:loop_length], peak=0.6, folder='app/sounds', loop=True, rate=22050)
 
 print('done')

@@ -1,10 +1,11 @@
 import { usePreventRemove } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { BoxStageHandle, RevealBeat } from '@/entities/box';
 import { useOpenBoxMutation, useSellItemMutation } from '@/entities/player';
 import type { ApiErrorBody, OwnedItem, Rarity } from '@/shared/api';
+import { duckMusic } from '@/shared/lib';
 
 import { revealSound, stepSound, useOpeningSounds } from '../lib/opening-sounds';
 import type { TeaseStep } from '../ui/TeaseCallout';
@@ -40,6 +41,14 @@ export function useOpeningFlow(boxId: string) {
 
   // The purchase is already committed on the server; leaving now would skip the reveal of what was paid for.
   usePreventRemove(busy, () => {});
+
+  // The music steps back from the hold to the burst, so the charge and reveal sounds carry; it returns with the result.
+  const ducked = phase === 'charging' || busy;
+  useEffect(() => {
+    if (!ducked) return;
+    duckMusic(true);
+    return () => duckMusic(false);
+  }, [ducked]);
 
   const onChargingChange = (charging: boolean) => {
     setPhase(charging ? 'charging' : 'ready');

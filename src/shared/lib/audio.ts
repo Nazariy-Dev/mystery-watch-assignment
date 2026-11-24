@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import { AudioContext, AudioManager, type AudioBuffer } from 'react-native-audio-api';
 
 let context: AudioContext | null = null;
@@ -7,10 +8,15 @@ const decoded = new Map<number, Promise<AudioBuffer>>();
  * The app's one audio context, created on first use. The iOS session is `ambient` with `mixWithOthers`: game
  * sounds obey the silent switch and never stop the user's own music.
  */
-function getContext() {
+export function getContext() {
   if (!context) {
     AudioManager.setSystemOptions({ ios: { category: 'ambient', options: ['mixWithOthers'] } });
     context = new AudioContext();
+    // Android keeps a context playing in the background, so the music loop would follow the user out of the app.
+    AppState.addEventListener('change', (state) => {
+      if (state === 'background') context?.suspend();
+      else if (state === 'active') context?.resume();
+    });
   }
   return context;
 }

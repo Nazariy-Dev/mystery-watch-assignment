@@ -1,12 +1,10 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import { prepareTapFeedback } from '@/shared/lib';
-
+import { useAppStartup } from './lib/app-startup';
 import { RootNavigator } from './navigation/RootNavigator';
 import { persistor, store } from './store';
 import { SplashIntro } from './ui/SplashIntro';
@@ -15,8 +13,7 @@ import { SplashIntro } from './ui/SplashIntro';
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [intro, setIntro] = useState(true);
-  useEffect(prepareTapFeedback, []);
+  const { intro, onIntroDone } = useAppStartup();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -26,7 +23,7 @@ export default function App() {
           <RootNavigator />
         </PersistGate>
       </Provider>
-      {intro && <SplashIntro onDone={() => setIntro(false)} />}
+      {intro && <SplashIntro onDone={onIntroDone} />}
     </GestureHandlerRootView>
   );
 }
