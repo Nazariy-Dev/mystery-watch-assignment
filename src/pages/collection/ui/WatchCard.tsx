@@ -19,14 +19,12 @@ export function WatchCard({ item, onPress }: { item: OwnedItem; onPress: () => v
       onPress={onPress}
       style={({ pressed }) => [styles.card(watch.rarity), pressed && styles.pressed]}
     >
-      <View style={styles.imageWell(watch.rarity)}>
-        <WatchImage watch={watch} style={styles.image} />
-      </View>
+      <WatchImage watch={watch} style={styles.image} />
       <Text variant="label" style={styles.rarity(watch.rarity)}>{watch.rarity}</Text>
       <Text numberOfLines={1}>{watch.name}</Text>
       <View style={styles.value}>
-        <CoinIcon size={14} />
-        <Text variant="caption" tone="coin">{watch.value.toLocaleString('en-US')}</Text>
+        <CoinIcon size={16} />
+        <Text tone="coin" style={styles.valueText}>{watch.value.toLocaleString('en-US')}</Text>
       </View>
     </Touchable>
   );
@@ -38,23 +36,21 @@ const styles = StyleSheet.create((theme, rt) => ({
     width: (rt.screen.width - theme.gap(8) - theme.gap(3)) / 2,
     padding: theme.gap(4),
     gap: theme.gap(1),
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: `${theme.rarity[rarity]}44`,
+    borderColor: `${theme.rarity[rarity]}55`,
+    // The rarity hue washes down from the top and settles into the surface, like a lit display case.
+    backgroundImage: `linear-gradient(180deg, ${theme.rarity[rarity]}33 0%, ${theme.colors.surface} 70%)`,
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
   }),
   pressed: {
     transform: [{ scale: 0.97 }],
   },
-  imageWell: (rarity: Rarity) => ({
-    alignItems: 'center',
-    paddingVertical: theme.gap(2),
-    marginBottom: theme.gap(1),
-    borderRadius: theme.radius.sm,
-    backgroundColor: `${theme.rarity[rarity]}14`,
-  }),
   image: {
+    alignSelf: 'center',
     height: 110,
+    marginVertical: theme.gap(2),
   },
   rarity: (rarity: Rarity) => ({
     color: theme.rarity[rarity],
@@ -63,5 +59,9 @@ const styles = StyleSheet.create((theme, rt) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.gap(1),
+    marginTop: theme.gap(1),
+  },
+  valueText: {
+    fontWeight: theme.fontWeight.bold,
   },
 }));

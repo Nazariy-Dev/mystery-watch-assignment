@@ -34,11 +34,11 @@ const styles = StyleSheet.create((theme, rt) => ({
   stat: {
     flex: 1,
     height: 80,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
   },
   card: {
     width: (rt.screen.width - theme.gap(8) - theme.gap(3)) / 2,
     height: 210,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
   },
 }));
