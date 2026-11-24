@@ -6,6 +6,7 @@ import { BoxStage, useGetBoxQuery } from '@/entities/box';
 import { CoinBalance, useGetMeQuery } from '@/entities/player';
 import type { Rarity } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
+import { easedRadialGradient } from '@/shared/lib';
 import { IconButton, Screen, Text, Touchable } from '@/shared/ui';
 
 import { useOpeningFlow } from '../model/opening-flow';
@@ -53,10 +54,14 @@ export function BoxOpeningPage({ navigation, route }: BoxOpeningPageProps) {
         <CoinBalance />
       </View>
       <View style={styles.title}>
-        <Text variant="label" style={styles.tier(box.tier)}>{box.tier} box</Text>
+        <View style={styles.rarityChip(box.tier)}>
+          <View style={styles.rarityDot(box.tier)} />
+          <Text variant="label" style={styles.tier(box.tier)}>{box.tier} box</Text>
+        </View>
         <Text variant="title" accessibilityRole="header">{box.name}</Text>
       </View>
       <View style={styles.stage}>
+        <View pointerEvents="none" style={styles.glow(box.tier)} />
         <BoxStage
           ref={stage}
           tier={box.tier}
@@ -141,15 +146,47 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     alignItems: 'center',
-    gap: theme.gap(1),
+    gap: theme.gap(2),
   },
+  rarityChip: (tier: Rarity) => ({
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.gap(2),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(1),
+    borderRadius: theme.radius.pill,
+    backgroundColor: `${theme.rarity[tier]}1F`,
+    borderWidth: 1,
+    borderColor: `${theme.rarity[tier]}55`,
+  }),
+  rarityDot: (tier: Rarity) => ({
+    width: 8,
+    height: 8,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.rarity[tier],
+  }),
   tier: (tier: Rarity) => ({
     color: theme.rarity[tier],
   }),
   stage: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  // A soft pool of the tier's color behind the box, so the stage reads as lit rather than empty.
+  glow: (tier: Rarity) => ({
+    position: 'absolute',
+    width: 640,
+    height: 640,
+    backgroundImage: easedRadialGradient({
+      from: `${theme.rarity[tier]}40`,
+      to: `${theme.rarity[tier]}00`,
+      end: 0.7,
+      shape: 'circle',
+    }),
+  }),
   fill: {
+    alignSelf: 'stretch',
     flex: 1,
   },
   skip: {

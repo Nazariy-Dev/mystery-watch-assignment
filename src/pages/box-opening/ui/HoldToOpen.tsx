@@ -102,13 +102,15 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.radius.pill,
     borderWidth: 1.5,
     borderColor: theme.colors.primary,
+    // Same candy bevel as the primary button, over both the track and the fill.
+    boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -4px 0 rgba(0, 0, 0, 0.22)',
   },
   fill: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: theme.colors.primary,
+    backgroundImage: `linear-gradient(90deg, ${theme.colors.primary} 0%, ${theme.colors.promo} 100%)`,
   },
   labelBox: {
     flex: 1,
