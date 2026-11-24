@@ -37,8 +37,9 @@ export function PromoBanner({ box, onPress }: { box: Box; onPress: () => void })
 }
 
 const styles = StyleSheet.create((theme) => ({
+  // Grows when the title wraps on narrow phones, instead of squeezing the copy into the button.
   banner: {
-    height: 168,
+    minHeight: 168,
     padding: theme.gap(5),
     borderRadius: theme.radius.lg,
     overflow: 'hidden',
@@ -91,10 +92,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.85)',
+    marginBottom: theme.gap(4),
   },
   cta: {
-    paddingHorizontal: theme.gap(4),
-    paddingVertical: theme.gap(2),
+    paddingHorizontal: theme.gap(3),
+    paddingVertical: theme.gap(1.5),
     borderRadius: theme.radius.pill,
     backgroundColor: '#FFFFFF',
     boxShadow: 'inset 0 -3px 0 rgba(0, 0, 0, 0.12)',
