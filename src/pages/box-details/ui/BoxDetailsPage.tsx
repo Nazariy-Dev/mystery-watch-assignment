@@ -1,7 +1,7 @@
 import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { ScrollView, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { BoxStage, useGetBoxQuery } from '@/entities/box';
 import { CoinBalance, useGetMeQuery } from '@/entities/player';
@@ -9,13 +9,12 @@ import type { Box } from '@/shared/api';
 import type { RootStackParamList } from '@/shared/config';
 import { Button, IconButton, Screen, Text } from '@/shared/ui';
 
+import { BoxDetailsSkeleton } from './BoxDetailsSkeleton';
 import { Contents } from './Contents';
 import { Footer } from './Footer';
 import { Odds } from './Odds';
 
 type BoxDetailsPageProps = NativeStackScreenProps<RootStackParamList, 'BoxDetails'>;
-
-const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
 
 export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
   const { boxId } = route.params;
@@ -55,17 +54,13 @@ export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
           </ScrollView>
           <Footer box={box} balance={me?.balance} onOpen={() => navigation.navigate('BoxOpening', { boxId })} />
         </>
-      ) : (
+      ) : isError ? (
         <View style={styles.status}>
-          {isError ? (
-            <>
-              <Text tone="muted">Couldn&apos;t load this box.</Text>
-              <Button label="Retry" variant="secondary" onPress={refetch} />
-            </>
-          ) : (
-            <Spinner size="large" accessibilityLabel="Loading box" />
-          )}
+          <Text tone="muted">Couldn&apos;t load this box.</Text>
+          <Button label="Retry" variant="secondary" onPress={refetch} />
         </View>
+      ) : (
+        <BoxDetailsSkeleton />
       )}
     </Screen>
   );

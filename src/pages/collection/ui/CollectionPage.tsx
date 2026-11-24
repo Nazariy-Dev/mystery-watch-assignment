@@ -1,19 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
 import { useMemo } from 'react';
-import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { Alert, FlatList, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { CoinBalance, useGetMeQuery, useResetDemoMutation } from '@/entities/player';
 import type { Rarity } from '@/shared/api';
 import { Button, Screen, Text } from '@/shared/ui';
 
+import { CollectionSkeleton } from './CollectionSkeleton';
 import { EmptyVault } from './EmptyVault';
 import { Stat } from './Stat';
 import { WatchCard } from './WatchCard';
 
 const RARITY_RANK: Record<Rarity, number> = { legendary: 0, epic: 1, rare: 2, common: 3 };
-
-const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
 
 export function CollectionPage() {
   const navigation = useNavigation();
@@ -73,17 +72,13 @@ export function CollectionPage() {
             <WatchCard item={item} onPress={() => navigation.navigate('WatchDetails', { itemId: item.id })} />
           )}
         />
-      ) : (
+      ) : isError ? (
         <View style={styles.status}>
-          {isError ? (
-            <>
-              <Text tone="muted">Couldn&apos;t load your vault.</Text>
-              <Button label="Retry" variant="secondary" onPress={refetch} />
-            </>
-          ) : (
-            <Spinner size="large" accessibilityLabel="Loading vault" />
-          )}
+          <Text tone="muted">Couldn&apos;t load your vault.</Text>
+          <Button label="Retry" variant="secondary" onPress={refetch} />
         </View>
+      ) : (
+        <CollectionSkeleton />
       )}
     </Screen>
   );

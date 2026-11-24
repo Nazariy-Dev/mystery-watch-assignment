@@ -1,13 +1,12 @@
-import { ActivityIndicator, View } from 'react-native';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { useGetBoxesQuery } from '@/entities/box';
 import { CoinBalance } from '@/entities/player';
 import { Button, Screen, Text } from '@/shared/ui';
 
 import { BoxCarousel } from './BoxCarousel';
-
-const Spinner = withUnistyles(ActivityIndicator, (theme) => ({ color: theme.colors.primary }));
+import { CatalogueSkeleton } from './CatalogueSkeleton';
 
 export function CataloguePage() {
   const { data: boxes, isError, refetch } = useGetBoxesQuery();
@@ -25,17 +24,13 @@ export function CataloguePage() {
         <View style={styles.carousel}>
           <BoxCarousel boxes={boxes} />
         </View>
-      ) : (
+      ) : isError ? (
         <View style={styles.status}>
-          {isError ? (
-            <>
-              <Text tone="muted">Couldn&apos;t load the boxes.</Text>
-              <Button label="Retry" variant="secondary" onPress={refetch} />
-            </>
-          ) : (
-            <Spinner size="large" accessibilityLabel="Loading boxes" />
-          )}
+          <Text tone="muted">Couldn&apos;t load the boxes.</Text>
+          <Button label="Retry" variant="secondary" onPress={refetch} />
         </View>
+      ) : (
+        <CatalogueSkeleton />
       )}
     </Screen>
   );
