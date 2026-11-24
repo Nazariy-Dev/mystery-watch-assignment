@@ -48,11 +48,14 @@ const styles = StyleSheet.create((theme) => ({
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 4 },
           elevation: 6,
+          // A hairline of light along the top edge, so the pill reads as raised rather than flat.
+          boxShadow: 'inset 0 1.5px 0 rgba(255, 255, 255, 0.45)',
         },
         secondary: {
           backgroundColor: theme.colors.surfaceRaised,
           borderWidth: 1,
-          borderColor: theme.colors.border,
+          // A faint accent edge ties secondary actions to the primary color without competing with it.
+          borderColor: `${theme.colors.primary}26`,
         },
       },
     },
