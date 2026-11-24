@@ -27,7 +27,7 @@ const styles = StyleSheet.create((theme) => ({
     height: size * 0.55,
     borderRadius: size,
     borderWidth: Math.max(1, size * 0.08),
-    borderColor: theme.colors.onPrimary,
+    borderColor: theme.colors.background,
     opacity: 0.35,
   }),
 }));

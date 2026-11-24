@@ -6,7 +6,7 @@ import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 
 import { Text, Touchable } from '@/shared/ui';
 
-const SparkIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.primary }));
+const SparkIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.accent }));
 const CloseIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.textMuted }));
 
 /** One-time welcome for a first launch: what the coins are for and how to open a box. Gone for good once dismissed. */

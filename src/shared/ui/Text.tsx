@@ -57,7 +57,7 @@ const styles = StyleSheet.create((theme) => ({
       tone: {
         default: { color: theme.colors.text },
         muted: { color: theme.colors.textMuted },
-        primary: { color: theme.colors.primary },
+        primary: { color: theme.colors.accent },
         coin: { color: theme.colors.coin },
       },
     },

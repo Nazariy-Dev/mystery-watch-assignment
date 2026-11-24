@@ -48,8 +48,8 @@ const styles = StyleSheet.create((theme) => ({
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 4 },
           elevation: 6,
-          // A hairline of light along the top edge, so the pill reads as raised rather than flat.
-          boxShadow: 'inset 0 1.5px 0 rgba(255, 255, 255, 0.45)',
+          // Candy bevel: a gloss line along the top and a darker lip along the bottom, so the pill looks pressable.
+          boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -4px 0 rgba(0, 0, 0, 0.22)',
         },
         secondary: {
           backgroundColor: theme.colors.surfaceRaised,

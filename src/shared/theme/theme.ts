@@ -1,14 +1,18 @@
-/** Neon night vault: near-black indigo base, icy-teal accent matching the box seam, glowing rarity hues. */
+/** Candy night: near-black indigo base, electric-violet accent with glossy controls, glowing rarity hues. */
 export const darkTheme = {
   colors: {
-    background: '#0B0B1A',
-    surface: '#15152B',
-    surfaceRaised: '#1E1E3B',
-    border: 'rgba(242, 243, 255, 0.08)',
-    text: '#F2F3FF',
-    textMuted: '#9A9CC4',
-    primary: '#5CE1E6',
-    onPrimary: '#0B0B1A',
+    background: '#0D0A1F',
+    surface: '#18142F',
+    surfaceRaised: '#231D45',
+    border: 'rgba(236, 230, 255, 0.08)',
+    text: '#F4F1FF',
+    textMuted: '#9F98C8',
+    primary: '#6D3BFF',
+    /** Lighter violet for accent text and icons: plain `primary` is too dark to read on the base. */
+    accent: '#A68BFF',
+    onPrimary: '#FFFFFF',
+    /** Hot pink for promo banners and "new" badges. */
+    promo: '#FF2E93',
     coin: '#FFC83D',
     danger: '#FF5A7A',
     success: '#3DDC97',

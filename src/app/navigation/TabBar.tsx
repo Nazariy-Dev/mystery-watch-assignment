@@ -137,6 +137,8 @@ const styles = StyleSheet.create((theme, rt) => ({
     left: 0,
     borderRadius: theme.radius.pill,
     backgroundColor: theme.colors.primary,
+    // Same candy bevel as the primary button.
+    boxShadow: 'inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -3px 0 rgba(0, 0, 0, 0.22)',
     shadowColor: theme.colors.primary,
     shadowOpacity: 0.5,
     shadowRadius: 12,
