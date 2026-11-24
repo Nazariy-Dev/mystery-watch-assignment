@@ -14,6 +14,9 @@ import { Contents } from './Contents';
 import { Footer } from './Footer';
 import { Odds } from './Odds';
 
+/** Room above the stage for the loading glow, which the scroll view would otherwise clip at its top edge. */
+const HALO_SPACE = 32;
+
 type BoxDetailsPageProps = NativeStackScreenProps<RootStackParamList, 'BoxDetails'>;
 
 export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
@@ -37,6 +40,7 @@ export function BoxDetailsPage({ navigation, route }: BoxDetailsPageProps) {
               <BoxStage
                 tier={box.tier}
                 inspectable
+                haloSpace={HALO_SPACE}
                 accessibilityLabel={`3D model of the ${box.name} box`}
                 style={styles.stage}
               />
@@ -80,6 +84,7 @@ const styles = StyleSheet.create((theme) => ({
     marginHorizontal: -theme.gap(4),
   },
   content: {
+    paddingTop: HALO_SPACE,
     paddingHorizontal: theme.gap(4),
     paddingBottom: theme.gap(8),
     gap: theme.gap(6),

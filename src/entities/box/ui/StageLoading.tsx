@@ -20,10 +20,12 @@ type StageLoadingProps = {
   shown: SharedValue<number>;
   breath: SharedValue<number>;
   flash: SharedValue<number>;
+  /** Free points around the canvas the halos may spread into. */
+  space: number;
 };
 
 /** Sits behind the canvas: a breathing tier glow where the box will stand, then a flash as it appears. */
-export function StageLoading({ tier, shown, breath, flash }: StageLoadingProps) {
+export function StageLoading({ tier, shown, breath, flash, space }: StageLoadingProps) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -40,15 +42,15 @@ export function StageLoading({ tier, shown, breath, flash }: StageLoadingProps) 
   }));
 
   const frame = size && placeholderFrame(size.width, size.height);
-  // Scroll views clip their content, so each halo is kept small enough that its faded edge stays inside the canvas,
-  // even at the largest scale it animates to.
-  const room = frame ? 2 * Math.min(frame.centerY, frame.height - frame.centerY) : 0;
+  // Scroll views clip their content, so each halo is kept small enough that its faded edge stays inside the canvas
+  // plus the free space around it, even at the largest scale it animates to.
+  const room = frame ? 2 * (Math.min(frame.centerY, frame.height - frame.centerY) + space) : 0;
 
   return (
     <View pointerEvents="none" style={styles.layer} onLayout={onLayout}>
       {frame && (
         <>
-          <Animated.View style={[styles.glow(tier), circle(Math.min(frame.boxWidth * 2.2, room / (GLOW_END * GLOW_SCALE.to)), frame), glowStyle]} />
+          <Animated.View style={[styles.glow(tier), circle(Math.min(frame.boxWidth * 1.8, room / (GLOW_END * GLOW_SCALE.to)), frame), glowStyle]} />
           <Animated.View style={[styles.flash(tier), circle(Math.min(frame.boxWidth * 2.4, room / (FLASH_END * FLASH_SCALE.to)), frame), flashStyle]} />
         </>
       )}

@@ -36,6 +36,11 @@ type BoxStageProps = {
   spinning?: boolean;
   /** Horizontal drags turn the box; vertical drags still reach the parent scroll view. */
   inspectable?: boolean;
+  /**
+   * Free points around the stage that the loading glow may spread into. The default 0 keeps it inside the stage,
+   * as a scroll view clips anything drawn past its edge.
+   */
+  haloSpace?: number;
   /** Makes the stage a labelled image for screen readers; omit when a parent already describes the box. */
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -53,6 +58,7 @@ export function BoxStage({
   ref,
   spinning = true,
   inspectable = false,
+  haloSpace = 0,
   accessibilityLabel,
   style,
 }: BoxStageProps) {
@@ -71,7 +77,7 @@ export function BoxStage({
         accessibilityRole={accessibilityLabel ? 'image' : undefined}
         accessibilityLabel={accessibilityLabel}
       >
-        <StageLoading tier={tier} shown={shown} breath={breath} flash={flash} />
+        <StageLoading tier={tier} shown={shown} breath={breath} flash={flash} space={haloSpace} />
         {/* R3F's canvas claims touches; letting them through keeps parent scrolls, presses and the drag working. */}
         <Animated.View style={[fill, canvasStyle]} pointerEvents="none">
           <Canvas frameloop={spinning ? 'always' : 'demand'} camera={{ fov: FOV }}>
