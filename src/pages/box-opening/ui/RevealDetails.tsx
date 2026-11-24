@@ -21,7 +21,6 @@ const stampIn = () => {
   };
 };
 
-/** Rarity, name, brand and value of the won watch; a legendary gets its rarity stamped down with a thud. */
 export function RevealDetails({ watch }: { watch: Watch }) {
   const reduceMotion = useReducedMotion();
   const legendary = watch.rarity === 'legendary';

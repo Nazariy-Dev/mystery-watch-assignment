@@ -7,7 +7,6 @@ import type { Rarity } from '@/shared/api';
 
 export type TeaseStep = { rarity: Rarity; final: boolean; count: number };
 
-/** Full-screen color flash plus the rarity name punching in, once per tease step. */
 export function TeaseCallout({ step }: { step: TeaseStep }) {
   const flash = useSharedValue(0);
   const reduceMotion = useReducedMotion();

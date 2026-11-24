@@ -7,7 +7,6 @@ type TextProps = RNTextProps & {
   tone?: 'muted' | 'primary' | 'coin';
 };
 
-/** Themed text; `variant` picks the type ramp, `tone` the color. */
 export function Text({ variant = 'body', tone, style, ...rest }: TextProps) {
   const variantStyles = styles.useVariants({ variant, tone });
 

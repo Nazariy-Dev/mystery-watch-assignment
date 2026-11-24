@@ -24,7 +24,6 @@ const TABS: Record<keyof TabParamList, Tab> = {
 
 const SLIDE_MS = 280;
 
-/** Floating pill tab bar; a glowing highlight slides under whichever tab is selected. */
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const reduceMotion = useReducedMotion();
   // Fractional tab index the highlight sits at; each tab cross-fades its colors as the highlight passes under it.

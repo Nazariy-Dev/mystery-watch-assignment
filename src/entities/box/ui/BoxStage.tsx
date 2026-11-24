@@ -46,7 +46,6 @@ type BoxStageProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** Self-contained 3D view of one box: camera, lighting and the tier-colored model. */
 export function BoxStage({
   tier,
   charging = false,

@@ -8,7 +8,6 @@ import type { Rarity, Watch } from '@/shared/api';
 
 import { easedRadialGradient } from '@/shared/lib';
 
-/** The won watch zooming in over a slowly breathing halo in its rarity color. */
 export function RevealShowcase({ watch }: { watch: Watch }) {
   const pulse = useSharedValue(0);
   const reduceMotion = useReducedMotion();

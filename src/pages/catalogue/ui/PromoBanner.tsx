@@ -6,7 +6,6 @@ import type { Box } from '@/shared/api';
 import { easedRadialGradient } from '@/shared/lib';
 import { SparklesIcon, Text, Touchable } from '@/shared/ui';
 
-/** Hero promo for the priciest box, selling its best prize; tapping anywhere opens the box. */
 export function PromoBanner({ box, onPress }: { box: Box; onPress: () => void }) {
   const prize = box.contents.reduce((best, content) => (content.watch.value > best.watch.value ? content : best));
 

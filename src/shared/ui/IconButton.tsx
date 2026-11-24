@@ -13,7 +13,6 @@ type IconButtonProps = {
 
 const ThemedIcon = withUnistyles(Ionicons, (theme) => ({ color: theme.colors.text }));
 
-/** Round icon-only button for screen chrome such as back and close. */
 export function IconButton({ icon, accessibilityLabel, onPress }: IconButtonProps) {
   return (
     <Touchable

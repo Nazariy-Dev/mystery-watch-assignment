@@ -10,7 +10,6 @@ type ButtonProps = {
   disabled?: boolean;
 };
 
-/** Chunky pill button; sinks slightly while pressed for tactile, game-like feedback. */
 export function Button({ label, onPress, variant = 'primary', disabled = false }: ButtonProps) {
   const variantStyles = styles.useVariants({ variant });
 

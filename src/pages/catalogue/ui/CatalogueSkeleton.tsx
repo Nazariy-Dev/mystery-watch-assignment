@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { Skeleton } from '@/shared/ui';
 
-/** The promo banner, rarity chips, section heading and focused carousel card, while the boxes load. */
 export function CatalogueSkeleton() {
   return (
     <View style={styles.container} accessible accessibilityLabel="Loading boxes">

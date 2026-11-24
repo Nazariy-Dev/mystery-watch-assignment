@@ -13,7 +13,6 @@ type TierChipsProps = {
   onSelect: (index: number) => void;
 };
 
-/** Rarity shortcuts above the carousel: tapping one jumps to that box, and the highlight follows swipes. */
 export function TierChips({ tiers, selected, onSelect }: TierChipsProps) {
   // Swipes move the selection; the row follows so the selected chip stays in view.
   const { scroller, onLayout, onContentSizeChange, onItemLayout } = useFollowSelection(selected);

@@ -6,7 +6,6 @@ import { CoinIcon, Text } from '@/shared/ui';
 
 import { useGetMeQuery } from '../api/playerApi';
 
-/** Wallet chip; the number rolls to the new balance after a purchase or sale. */
 export function CoinBalance() {
   const { data: me } = useGetMeQuery();
   const balance = useCountUp(me?.balance ?? 0);

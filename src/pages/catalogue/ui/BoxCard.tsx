@@ -35,7 +35,6 @@ const SCROLL_PRESS_DELAY_MS = 100;
 const BOB_MS = 2400;
 const BOB_HEIGHT = 8;
 
-/** A box floating in open space with its rarity, name and price; it tilts and sinks away as the carousel moves on. */
 export function BoxCard({ box, index, snap, width, scrollX, hasStage, focused, onPress }: BoxCardProps) {
   const reduceMotion = useReducedMotion();
   const bob = useSharedValue(0);

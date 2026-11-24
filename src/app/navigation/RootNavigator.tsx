@@ -38,7 +38,6 @@ function Tabs() {
   );
 }
 
-/** App navigation: tabs at the root, details pushed on top, opening shown as a full-screen modal. */
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>

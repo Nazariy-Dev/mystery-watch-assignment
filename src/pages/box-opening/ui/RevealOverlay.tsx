@@ -17,7 +17,6 @@ type RevealOverlayProps = {
   onOpenAnother: () => void;
 };
 
-/** Result card over the opened box; the watch, its details and the actions arrive one after another. */
 export function RevealOverlay({ item, ...actions }: RevealOverlayProps) {
   return (
     <Animated.View entering={FadeIn.duration(350)} style={styles.backdrop}>

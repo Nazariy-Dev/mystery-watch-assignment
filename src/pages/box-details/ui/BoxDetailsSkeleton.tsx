@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { Skeleton } from '@/shared/ui';
 
-/** The stage, title, odds bar and contents grid of the box page, while the box loads. */
 export function BoxDetailsSkeleton() {
   return (
     <View style={styles.content} accessible accessibilityLabel="Loading box">

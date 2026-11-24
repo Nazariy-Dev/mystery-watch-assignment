@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { Skeleton } from '@/shared/ui';
 
-/** The stat tiles and the first rows of the watch grid, while the vault loads. */
 export function CollectionSkeleton() {
   return (
     <View style={styles.content} accessible accessibilityLabel="Loading vault">

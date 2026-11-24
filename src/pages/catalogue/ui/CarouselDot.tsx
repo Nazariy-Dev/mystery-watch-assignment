@@ -7,7 +7,6 @@ type CarouselDotProps = {
   scrollX: SharedValue<number>;
 };
 
-/** A page dot that stretches into a violet pill as its card scrolls into focus, tracking the swipe frame by frame. */
 export function CarouselDot({ index, snap, scrollX }: CarouselDotProps) {
   const dotStyle = useAnimatedStyle(() => {
     const closeness = interpolate(Math.abs(scrollX.value / snap - index), [0, 1], [1, 0], 'clamp');

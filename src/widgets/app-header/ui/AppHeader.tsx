@@ -6,7 +6,6 @@ import { Text } from '@/shared/ui';
 
 const LOGO_MARK = require('../../../../assets/app/logo-mark.png');
 
-/** Top bar of the tab screens: the brand on the left, the wallet on the right. */
 export function AppHeader() {
   return (
     <View style={styles.header}>
