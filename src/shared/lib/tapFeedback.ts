@@ -4,7 +4,7 @@ import type { AudioBuffer } from 'react-native-audio-api';
 
 import { loadSound, playSound } from './audio';
 
-/** What a tap means; each has its own click and haptic. */
+/** What a tap means; each has its own click, and the meaningful ones a haptic. */
 export type TapFeedback = 'confirm' | 'back' | 'tab' | 'denied';
 
 // Synthesized by scripts/synthesize-sounds.py: three pitches about 3% apart per kind.
@@ -15,29 +15,31 @@ const SOUNDS: Record<TapFeedback, number[]> = {
   denied: [require('./sounds/denied-1.wav'), require('./sounds/denied-2.wav'), require('./sounds/denied-3.wav')],
 };
 
-/** Platform guidance: selection ticks for tabs, light impacts for buttons, a warning for a refused tap. */
-const IOS_HAPTICS: Record<TapFeedback, () => Promise<void>> = {
-  confirm: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-  back: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft),
+/**
+ * Only taps that carry meaning get a haptic: a selection changing and a refused tap. Plain buttons (`confirm`,
+ * `back`) only click, so the opening sequence's haptics still stand out rather than blending into constant buzzing.
+ */
+type HapticFeedback = Extract<TapFeedback, 'tab' | 'denied'>;
+
+const IOS_HAPTICS: Record<HapticFeedback, () => Promise<void>> = {
   tab: () => Haptics.selectionAsync(),
   denied: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning),
 };
 
 /**
- * Android's own touch feedback constants: the system's light key ticks, which follow the user's touch-feedback
- * setting. The impact and notification calls drive the vibrator directly, a hard buzz on many Android phones.
+ * Android's own touch feedback constants, which follow the user's touch-feedback setting. The impact and
+ * notification calls drive the vibrator directly, a hard buzz on many Android phones.
  */
-const ANDROID_HAPTICS: Record<TapFeedback, Haptics.AndroidHaptics> = {
-  confirm: Haptics.AndroidHaptics.Virtual_Key,
-  back: Haptics.AndroidHaptics.Keyboard_Tap,
+const ANDROID_HAPTICS: Record<HapticFeedback, Haptics.AndroidHaptics> = {
   tab: Haptics.AndroidHaptics.Clock_Tick,
   denied: Haptics.AndroidHaptics.Reject,
 };
 
-// A type the device lacks (`Reject` needs Android 11) rejects; a missing tick isn't worth an error.
-const playHaptic = (kind: TapFeedback) =>
-  (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(ANDROID_HAPTICS[kind]) : IOS_HAPTICS[kind]()).catch(() => {});
+const hasHaptic = (kind: TapFeedback): kind is HapticFeedback => kind === 'tab' || kind === 'denied';
 
+// A type the device lacks (`Reject` needs Android 11) rejects; a missing tick isn't worth an error.
+const playHaptic = (kind: HapticFeedback) =>
+  (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(ANDROID_HAPTICS[kind]) : IOS_HAPTICS[kind]()).catch(() => {});
 
 /** Decoded clicks per kind, filled at startup; a tap before they are ready just gets its haptic. */
 const clicks: Partial<Record<TapFeedback, AudioBuffer[]>> = {};
@@ -53,9 +55,9 @@ export function prepareTapFeedback() {
   });
 }
 
-/** Plays the click and haptic for a tap, picking a pitch variant other than the previous one. */
+/** Plays the click (and haptic, where the kind has one) for a tap, picking a pitch variant other than the previous one. */
 export function playTapFeedback(kind: TapFeedback) {
-  playHaptic(kind);
+  if (hasHaptic(kind)) playHaptic(kind);
   const variants = clicks[kind];
   if (!variants) return;
   const offset = 1 + Math.floor(Math.random() * (variants.length - 1));

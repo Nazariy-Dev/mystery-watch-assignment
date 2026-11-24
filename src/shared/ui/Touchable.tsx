@@ -8,7 +8,7 @@ type TouchableProps = PressableProps & {
 };
 
 /**
- * Pressable that clicks and ticks the instant the finger lands, while the action still waits for release
+ * Pressable that clicks (and ticks, for tabs and refusals) the instant the finger lands, while the action still waits for release
  * (sliding off cancels it). Inside scrolling lists pass `unstable_pressDelay`, so starting a scroll stays silent.
  *
  * A disabled Touchable still takes the touch, only to answer with a dull `denied` thud instead of a dead tap;
