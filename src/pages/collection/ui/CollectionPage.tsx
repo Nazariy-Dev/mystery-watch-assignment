@@ -3,9 +3,10 @@ import { useMemo } from 'react';
 import { Alert, FlatList, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { CoinBalance, useGetMeQuery, useResetDemoMutation } from '@/entities/player';
+import { useGetMeQuery, useResetDemoMutation } from '@/entities/player';
 import type { Rarity } from '@/shared/api';
 import { Button, Screen, Text } from '@/shared/ui';
+import { AppHeader } from '@/widgets/app-header';
 
 import { CollectionSkeleton } from './CollectionSkeleton';
 import { EmptyVault } from './EmptyVault';
@@ -37,13 +38,8 @@ export function CollectionPage() {
 
   return (
     <Screen withBottomInset={false}>
-      <View style={styles.header}>
-        <View>
-          <Text variant="label" tone="primary">Vault</Text>
-          <Text variant="title" accessibilityRole="header">Your collection</Text>
-        </View>
-        <CoinBalance />
-      </View>
+      <AppHeader />
+      <Text variant="title" accessibilityRole="header" style={styles.title}>Your collection</Text>
       {me ? (
         <FlatList
           data={items}
@@ -85,11 +81,9 @@ export function CollectionPage() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: theme.gap(3),
+  title: {
+    marginTop: theme.gap(2),
+    marginBottom: theme.gap(3),
   },
   list: {
     flexGrow: 1,

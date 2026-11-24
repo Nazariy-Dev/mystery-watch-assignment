@@ -29,9 +29,9 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.gap(3),
     paddingVertical: theme.gap(2),
     borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.surfaceRaised,
+    backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: `${theme.colors.primary}40`,
   },
   amount: {
     fontSize: 16,

@@ -2,8 +2,8 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { useGetBoxesQuery } from '@/entities/box';
-import { CoinBalance } from '@/entities/player';
 import { Button, Screen, Text } from '@/shared/ui';
+import { AppHeader } from '@/widgets/app-header';
 
 import { BoxCarousel } from './BoxCarousel';
 import { CatalogueSkeleton } from './CatalogueSkeleton';
@@ -14,13 +14,8 @@ export function CataloguePage() {
 
   return (
     <Screen withBottomInset={false}>
-      <View style={styles.header}>
-        <View>
-          <Text variant="label" tone="primary">Mystery Watch</Text>
-          <Text variant="title" accessibilityRole="header">Pick your box</Text>
-        </View>
-        <CoinBalance />
-      </View>
+      <AppHeader />
+      <Text variant="title" accessibilityRole="header" style={styles.title}>Pick your box</Text>
       <WelcomeBanner />
       {boxes ? (
         <View style={styles.carousel}>
@@ -39,11 +34,9 @@ export function CataloguePage() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: theme.gap(3),
+  title: {
+    marginTop: theme.gap(2),
+    marginBottom: theme.gap(3),
   },
   carousel: {
     flex: 1,
