@@ -50,7 +50,7 @@ export function StageLoading({ tier, shown, breath, flash, space }: StageLoading
     <View pointerEvents="none" style={styles.layer} onLayout={onLayout}>
       {frame && (
         <>
-          <Animated.View style={[styles.glow(tier), circle(Math.min(frame.boxWidth * 1.8, room / (GLOW_END * GLOW_SCALE.to)), frame), glowStyle]} />
+          <Animated.View style={[styles.glow(tier), circle(Math.min(frame.boxWidth * 2.1, room / (GLOW_END * GLOW_SCALE.to)), frame), glowStyle]} />
           <Animated.View style={[styles.flash(tier), circle(Math.min(frame.boxWidth * 2.4, room / (FLASH_END * FLASH_SCALE.to)), frame), flashStyle]} />
         </>
       )}
@@ -79,7 +79,7 @@ const styles = StyleSheet.create((theme) => ({
       from: `${theme.rarity[tier]}55`,
       to: `${theme.rarity[tier]}00`,
       end: GLOW_END,
-      shape: 'circle',
+      shape: 'circle closest-side',
     }),
   }),
   flash: (tier: Rarity) => ({
@@ -88,7 +88,7 @@ const styles = StyleSheet.create((theme) => ({
       from: `${theme.rarity[tier]}CC`,
       to: `${theme.rarity[tier]}00`,
       end: FLASH_END,
-      shape: 'circle',
+      shape: 'circle closest-side',
     }),
   }),
 }));
