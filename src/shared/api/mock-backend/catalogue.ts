@@ -7,7 +7,8 @@ const WATCHES = {
   skyDweller: { id: 'sky-dweller', name: 'Sky-Dweller', brand: 'Oyster', rarity: 'legendary', value: 1800 },
 } satisfies Record<string, Watch>;
 
-// Expected payout stays below every price so selling back can't farm coins.
+// Expected payout stays below every price so selling back can't farm coins,
+// while every box's top prize beats its price so each box can still win.
 export const BOXES: Box[] = [
   {
     id: 'starter-drop',
@@ -29,10 +30,10 @@ export const BOXES: Box[] = [
     price: 400,
     tier: 'rare',
     contents: [
-      { watch: WATCHES.casio, chance: 45 },
-      { watch: WATCHES.perpetual, chance: 40 },
-      { watch: WATCHES.gmt, chance: 12 },
-      { watch: WATCHES.skyDweller, chance: 3 },
+      { watch: WATCHES.casio, chance: 32 },
+      { watch: WATCHES.perpetual, chance: 46 },
+      { watch: WATCHES.gmt, chance: 18 },
+      { watch: WATCHES.skyDweller, chance: 4 },
     ],
   },
   {
@@ -42,22 +43,21 @@ export const BOXES: Box[] = [
     price: 900,
     tier: 'epic',
     contents: [
-      { watch: WATCHES.casio, chance: 15 },
-      { watch: WATCHES.perpetual, chance: 45 },
-      { watch: WATCHES.gmt, chance: 30 },
-      { watch: WATCHES.skyDweller, chance: 10 },
+      { watch: WATCHES.perpetual, chance: 35 },
+      { watch: WATCHES.gmt, chance: 45 },
+      { watch: WATCHES.skyDweller, chance: 20 },
     ],
   },
   {
     id: 'crown-reserve',
     name: 'Crown Reserve',
     tagline: 'No digital. Only the finest.',
-    price: 2000,
+    price: 1500,
     tier: 'legendary',
     contents: [
-      { watch: WATCHES.perpetual, chance: 20 },
-      { watch: WATCHES.gmt, chance: 40 },
-      { watch: WATCHES.skyDweller, chance: 40 },
+      { watch: WATCHES.perpetual, chance: 5 },
+      { watch: WATCHES.gmt, chance: 45 },
+      { watch: WATCHES.skyDweller, chance: 50 },
     ],
   },
 ];

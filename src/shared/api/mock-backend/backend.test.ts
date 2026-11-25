@@ -2,6 +2,7 @@ import { env } from '@/shared/config';
 
 import type { Box, Me, OpenBoxResult, SellItemResult } from '../contract';
 
+import { BOXES } from './catalogue';
 import { mockBackendConfig, mockFetch } from './index';
 
 const call = async <T>(method: 'GET' | 'POST', path: string) => {
@@ -78,4 +79,14 @@ test.each([
   ['GET', '/not-a-route'],
 ] as const)('%s %s returns 404', async (method, path) => {
   expect((await call(method, path)).status).toBe(404);
+});
+
+// The house must keep an edge or selling back farms coins, yet a box whose best prize can't repay it is a guaranteed loss.
+test.each(BOXES.map((box) => [box.name, box] as const))('%s pays less than its price on average but can still win', (_, box) => {
+  const totalChance = box.contents.reduce((sum, content) => sum + content.chance, 0);
+  const expectedPayout = box.contents.reduce((sum, content) => sum + (content.chance / totalChance) * content.watch.value, 0);
+  const topPrize = Math.max(...box.contents.map((content) => content.watch.value));
+
+  expect(expectedPayout).toBeLessThan(box.price);
+  expect(topPrize).toBeGreaterThan(box.price);
 });
