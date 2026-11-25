@@ -72,7 +72,7 @@ bunx expo lint
 | Styling | react-native-unistyles 3: one dark "neon vault" theme. Safe-area insets come from `rt.insets`. Fonts are Unbounded and Manrope, embedded at build time by the `expo-font` plugin. |
 | State | Redux Toolkit with RTK Query, persisted to MMKV through redux-persist |
 | 3D | three.js through `@react-three/fiber/native` on `expo-gl` |
-| Motion & sound | Reanimated 4, react-native-gesture-handler 3, expo-haptics, expo-audio |
+| Motion & sound | Reanimated 4, react-native-gesture-handler 3, expo-haptics, react-native-audio-api |
 
 ### Folder layout (Feature-Sliced Design)
 
