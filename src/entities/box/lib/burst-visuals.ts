@@ -37,7 +37,11 @@ export class BurstVisuals {
   /** Effect clock: seconds since the burst, but slowed during slow motion. */
   private age = 0;
   private waves = 0;
-  private readonly sparkColors = new Float32Array(SPARK_COUNT * 3);
+  /**
+   * RGBA, not RGB: the canvas is transparent, so a spark faded only by color still writes alpha
+   * and shows as a black dot over the page behind it. Fading the alpha lets dead sparks vanish.
+   */
+  private readonly sparkColors = new Float32Array(SPARK_COUNT * 4);
   private readonly sparkGeometry = new BufferGeometry();
   private readonly rayGeometry = new PlaneGeometry(RAY_WIDTH, RAY_HEIGHT).translate(0, RAY_HEIGHT / 2, 0);
   private readonly beamTexture = createBeamTexture();
@@ -67,7 +71,7 @@ export class BurstVisuals {
       this.rays.add(ray);
     }
     this.sparkGeometry.setAttribute('position', new BufferAttribute(this.sparks.positions, 3));
-    this.sparkGeometry.setAttribute('color', new BufferAttribute(this.sparkColors, 3));
+    this.sparkGeometry.setAttribute('color', new BufferAttribute(this.sparkColors, 4));
     const points = new Points(this.sparkGeometry, this.sparkMaterial);
     // Sparks fly far from where the geometry started, so its stale bounds must not cull them.
     points.frustumCulled = false;
@@ -105,9 +109,10 @@ export class BurstVisuals {
     for (let i = 0; i < SPARK_COUNT; i += 1) {
       // A little white on top of the rarity color reads as hot metal rather than flat confetti.
       const glow = this.sparks.brightness[i];
-      this.sparkColors[i * 3] = (color.r + SPARK_HEAT) * glow;
-      this.sparkColors[i * 3 + 1] = (color.g + SPARK_HEAT) * glow;
-      this.sparkColors[i * 3 + 2] = (color.b + SPARK_HEAT) * glow;
+      this.sparkColors[i * 4] = (color.r + SPARK_HEAT) * glow;
+      this.sparkColors[i * 4 + 1] = (color.g + SPARK_HEAT) * glow;
+      this.sparkColors[i * 4 + 2] = (color.b + SPARK_HEAT) * glow;
+      this.sparkColors[i * 4 + 3] = glow;
     }
     this.sparkGeometry.attributes.position.needsUpdate = true;
     this.sparkGeometry.attributes.color.needsUpdate = true;
